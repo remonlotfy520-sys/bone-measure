@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>📐 الرسم والقياس وإصلاح التقوس</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html,body{margin:0; height:100%; background:#0f1412; font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0f766e; color:#fff; padding:12px 22px; border-radius:10px; font-size:14px; z-index:1000010; opacity:0; transition:opacity .2s; pointer-events:none;}
+  .toast.show{opacity:1;}
+  .toast.error{background:#c0392b;}
+  #mvClose{display:none !important;}
+.mv-overlay{display:none; position:fixed; inset:0; background:#0f1412; z-index:1000001; flex-direction:column; direction:rtl; color:#f2efe6;}
+  .mv-overlay.open{display:flex;}
+  .mv-overlay button{font-family:inherit; font-size:13px; padding:7px 10px; border-radius:8px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; cursor:pointer;}
+  .mv-overlay button:hover{background:#2f3b35;}
+  .mv-overlay button.active{background:#2f8f6b; border-color:#2f8f6b; color:#fff;}
+  .mv-top{display:flex; flex-wrap:wrap; gap:6px; padding:8px 10px; background:#1c2420; align-items:center; border-bottom:1px solid #2f3a34;}
+  .mv-title{font-weight:800; color:#fff; margin-inline-end:8px;}
+  .mv-sep{width:1px; height:22px; background:#3a463f; margin:0 2px;}
+  .mv-body{flex:1; display:flex; min-height:0; position:relative;}
+  .mv-side{width:244px; flex:none; overflow-y:auto; background:#1c2420; border-inline-end:1px solid #2f3a34; padding:4px 10px 14px;}
+  .mv-sec{padding:9px 0; border-bottom:1px solid #2a352f;}
+  .mv-sh{font-size:12px; font-weight:800; color:#9fb3a8; margin-bottom:7px;}
+  .mv-tgrid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .mv-tgrid button{padding:8px 4px; font-size:12.5px;}
+  .mv-tgrid .wide{grid-column:1/-1;}
+  .mv-row{display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:6px;}
+  .mv-lbl{color:#d9d4c2; font-size:12px;}
+  .mv-overlay input[type=number]{width:64px; padding:6px; border-radius:6px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; font-family:inherit;}
+  .mv-overlay input[type=color]{width:34px; height:30px; padding:0; border:1px solid #3a463f; border-radius:6px; background:none; cursor:pointer;}
+  .mv-overlay input[type=range]{width:100%;}
+  .mv-overlay button.mv-sw{width:24px; height:24px; padding:0; border-radius:50%; border:2px solid #3a463f;}
+  .mv-main{flex:1; min-width:0; position:relative; display:flex;}
+  .mv-stage{flex:1; min-width:0; overflow:auto; padding:10px; text-align:center; direction:ltr;}
+  .mv-stage canvas{cursor:crosshair; background:#000; display:inline-block; max-width:none;}
+  .mv-empty{position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; pointer-events:none; text-align:center; color:#d9d4c2;}
+  .mv-empty button{pointer-events:auto; font-size:15px; padding:12px 20px; background:#2f8f6b; border-color:#2f8f6b;}
+  .mv-hint{min-height:2.8em; display:flex; align-items:center; justify-content:center; padding:7px 12px; background:#1c2420; color:#d9d4c2; font-size:13px; text-align:center; border-top:1px solid #2f3a34;}
+  .mv-stages{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .mv-stg{display:grid; grid-template-columns:62px 1fr; gap:6px 8px; align-items:center; background:#222c27; border:1px solid #2f3a34; border-radius:8px; padding:6px;}
+  .mv-stg img{width:62px; height:46px; object-fit:cover; border-radius:5px; background:#000;}
+  .mv-stg-meta{display:flex; flex-direction:column; font-size:12px; min-width:0;}
+  .mv-stg-meta b{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .mv-stg-meta span{color:#9fb3a8; font-size:11px;}
+  .mv-stg-btns{grid-column:1/-1; display:flex; gap:6px;}
+  .mv-stg-btns button{flex:1; padding:5px 4px; font-size:12px;}
+  .mv-adj{display:flex; justify-content:space-between; margin-top:6px;}
+  .mv-overlay select{font-family:inherit; padding:5px; border-radius:6px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; max-width:100%;}
+  .mv-loupe{position:absolute; width:160px; height:160px; border-radius:50%; border:3px solid #ffe66d; box-shadow:0 4px 18px rgba(0,0,0,.65); pointer-events:none; display:none; z-index:4; background:#000;}
+  .mv-cmp-sel{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 8px;}
+  .mv-compare{position:absolute; inset:0; z-index:3; display:none; flex-direction:column; background:#0f1412; min-width:0;}
+  .mv-cmp-bar{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:6px 8px; background:#1c2420; border-bottom:1px solid #2f3a34;}
+  .mv-cmp-grid{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:6px;}
+  .mv-cmp-pane{display:flex; flex-direction:column; min-width:0; min-height:0; background:#141a17; border:1px solid #2f3a34; border-radius:8px; overflow:hidden;}
+  .mv-cmp-pane select{margin:6px; padding:6px; border-radius:6px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; font-family:inherit;}
+  .mv-cmp-view{flex:1; min-height:0; overflow:auto; text-align:center; direction:ltr; padding:4px;}
+  .mv-cmp-view img{max-width:none; display:inline-block;}
+  .mv-only-mobile{display:none;}
+  .mv-overlay.ltr .mv-side{border-inline-end:1px solid #2f3a34;}
+  @media (max-width:760px){
+    .mv-only-mobile{display:inline-block !important;}
+    .mv-side{position:absolute; top:0; bottom:0; right:0; z-index:5; width:min(84vw,270px); transform:translateX(100%); transition:transform .2s; box-shadow:-6px 0 20px rgba(0,0,0,.5);}
+    .mv-side.open{transform:none;}
+    .mv-cmp-grid{grid-template-columns:1fr; grid-template-rows:1fr 1fr;}
+    .mv-overlay.ltr .mv-side{right:auto; left:0; transform:translateX(-100%); box-shadow:6px 0 20px rgba(0,0,0,.5);}
+    .mv-overlay.ltr .mv-side.open{transform:none;}
+  }
+  
+</style>
+</head>
+<body>
+<div id="measureViewer" class="mv-overlay">
+  <div class="mv-top">
+    <button id="mvSideToggle" class="mv-only-mobile">☰ الأدوات</button>
+    <span class="mv-title" id="mvTitle" data-i18n-skip>📐 الرسم والقياس</span>
+    <button id="mvLang" data-i18n-skip title="Switch to English">🌐 EN</button>
+    <button id="mvInsert">🖼 إدراج صورة</button>
+    <button id="mvCompareBtn">⚖ مقارنة</button>
+    <input type="file" id="mvFile" accept="image/*" multiple style="display:none;">
+    <input type="file" id="mvJsonFile" accept=".json,application/json" style="display:none;">
+    <span class="mv-sep"></span>
+    <button id="mvUndo">↩ تراجع</button>
+    <button id="mvClear">🗑 مسح الكل</button>
+    <span class="mv-sep"></span>
+    <button id="mvZoomOut">➖</button>
+    <button id="mvZoomFit">ملائمة</button>
+    <button id="mvZoomIn">➕</button>
+    <button id="mvToolZoom">🔍 زووم</button>
+    <button id="mvViewBack">↩ العرض السابق</button>
+    <button id="mvLoupeBtn">🔎 عدسة</button>
+    <button id="mvClose" style="margin-inline-start:auto;">✖ إغلاق</button>
+  </div>
+  <div class="mv-body">
+    <aside class="mv-side" id="mvSide">
+      <div class="mv-sec">
+        <div class="mv-sh">📏 القياس</div>
+        <div class="mv-tgrid">
+          <button id="mvToolLine" class="active">📏 طول</button>
+          <button id="mvToolCalib">🎯 معايرة</button>
+          <button id="mvToolAngle">📐 زاوية 3 نقاط</button>
+          <button id="mvToolAngle2">∠ زاوية 4 نقاط</button>
+          <button id="mvToolLink" class="wide">🔗 زاوية بين خطين موجودين</button>
+        </div>
+      </div>
+      <div class="mv-sec">
+        <div class="mv-sh">✏️ الرسم</div>
+        <div class="mv-tgrid">
+          <button id="mvToolPoint">● نقطة</button>
+          <button id="mvToolMid">⊹ منتصف خط</button>
+          <button id="mvToolSeg">➖ خط</button>
+          <button id="mvToolCurve">〰 منحنى (تقوس)</button>
+          <button id="mvToolPen">✏️ رسم حر</button>
+          <button id="mvToolText">🔤 كتابة</button>
+        </div>
+      </div>
+      <div class="mv-sec">
+        <div class="mv-sh">🛠 التعديل</div>
+        <div class="mv-tgrid">
+          <button id="mvToolMove">✋ تحريك/تحديد</button>
+          <button id="mvToolPan">🖐 تنقّل</button>
+          <button id="mvToolCrop">🔲 كروب</button>
+          <button id="mvToolCut">✂️ قص</button>
+          <button id="mvToolRotate">🔄 تدوير</button>
+          <button id="mvScaleDown">🔍➖ تصغير القطعة</button>
+          <button id="mvScaleUp">🔍➕ تكبير القطعة</button>
+          <button id="mvDelSel" class="wide" style="visibility:hidden;">🗑 حذف المحدد</button>
+        </div>
+      </div>
+      <div class="mv-sec" id="mvCropGrp" style="display:none;">
+        <div class="mv-sh">🔲 كروب الصورة</div>
+        <div class="mv-lbl" id="mvCropTarget" style="margin-bottom:4px;"></div>
+        <div class="mv-lbl" style="opacity:.7;font-size:11px;">لكروب صورة مدرجة: حددها بأداة التحريك الأول، وبعدين اختار كروب</div>
+        <div class="mv-row" style="margin-top:0;"><button id="mvCropApply">✔ تطبيق الكروب</button><button id="mvCropCancel">✖ إلغاء</button></div>
+      </div>
+      <div class="mv-sec" id="mvPieceGrp" style="display:none;">
+        <div class="mv-sh">🔩 الصورة المدرجة / القطعة</div>
+        <div class="mv-adj"><span class="mv-lbl">التدوير بالدرجة</span><span><input type="number" id="mvPcRotN" min="-360" max="360" step="0.5" value="0" style="width:64px;" data-i18n-skip>°</span></div>
+        <input type="range" id="mvPcRot" min="-180" max="180" step="0.5" value="0">
+        <div class="mv-row"><button id="mvPcRotL">⟲ يسار</button><button id="mvPcRotR">⟳ يمين</button><span class="mv-lbl">الخطوة (درجة)</span><input type="number" id="mvPcRotStep" min="0.1" max="90" step="0.5" value="5" style="width:52px;" data-i18n-skip></div>
+        <div class="mv-adj"><span class="mv-lbl">الشفافية</span><b class="mv-lbl" id="mvPcOpV" data-i18n-skip>100%</b></div>
+        <input type="range" id="mvPcOp" min="5" max="100" step="1" value="100">
+        <div class="mv-adj"><span class="mv-lbl">العرض (تمدد أفقي)</span><b class="mv-lbl" id="mvPcSxV" data-i18n-skip>100%</b></div>
+        <input type="range" id="mvPcSx" min="10" max="500" step="1" value="100">
+        <div class="mv-adj"><span class="mv-lbl">الطول (تمدد رأسي)</span><b class="mv-lbl" id="mvPcSyV" data-i18n-skip>100%</b></div>
+        <input type="range" id="mvPcSy" min="10" max="500" step="1" value="100">
+        <div class="mv-row"><label class="mv-lbl"><input type="checkbox" id="mvPcLock" checked> ثبّت النسبة بين الطول والعرض</label></div>
+        <div class="mv-row"><button id="mvFlipX">⇋ قلب أفقي</button><button id="mvFlipY">⇅ قلب رأسي</button></div>
+        <div class="mv-row"><label class="mv-lbl"><input type="checkbox" id="mvKeyOn"> إزالة الخلفية</label></div>
+        <div class="mv-row" style="margin-top:2px;">
+          <select id="mvKeyMode"><option value="auto">تلقائي (من الأركان)</option><option value="white">أبيض</option><option value="black">أسود</option><option value="custom">لون مخصص</option></select>
+          <input type="color" id="mvKeyColor" value="#ffffff">
+        </div>
+        <div class="mv-adj"><span class="mv-lbl">درجة التحمّل (Tolerance)</span><b class="mv-lbl" id="mvKeyTolV" data-i18n-skip>25</b></div>
+        <input type="range" id="mvKeyTol" min="0" max="100" step="1" value="25">
+        <div class="mv-adj"><span class="mv-lbl">نعومة الحواف</span><b class="mv-lbl" id="mvKeySoftV" data-i18n-skip>10</b></div>
+        <input type="range" id="mvKeySoft" min="0" max="40" step="1" value="10">
+        <div class="mv-row"><label class="mv-lbl"><input type="checkbox" id="mvKeyEdge" checked> من الأطراف فقط (يحافظ على الأجزاء البيضاء جوه الجسم)</label></div>
+        <div class="mv-row"><label class="mv-lbl"><input type="checkbox" id="mvTintOn"> تلوين</label><input type="color" id="mvTintColor" value="#ffd24d"></div>
+        <div class="mv-adj"><span class="mv-lbl">قوة اللون</span><b class="mv-lbl" id="mvTintAmtV" data-i18n-skip>100%</b></div>
+        <input type="range" id="mvTintAmt" min="0" max="100" step="1" value="100">
+      </div>
+      <div class="mv-sec" id="mvRotGrp" style="display:none;">
+        <div class="mv-sh">🔄 التدوير حول المحور</div>
+        <div class="mv-row">
+          <button id="mvRotLeft">↺ يسار</button>
+          <input type="number" id="mvRotDeg" value="5" min="0.1" max="360" step="0.5">
+          <span class="mv-lbl">°</span>
+          <button id="mvRotRight">↻ يمين</button>
+        </div>
+        <div class="mv-row">
+          <button id="mvPivotCenter">⊙ توسيط المحور</button>
+          <button id="mvSelAll">☑ تحديد الكل</button>
+        </div>
+      </div>
+      <div class="mv-sec" id="mvCutGrp" style="display:none;">
+        <div class="mv-sh">✂️ خيارات القص</div>
+        <label class="mv-lbl"><input type="checkbox" id="mvKeepOrig"> نسخ بدل القص (اترك الأصل مكانه)</label>
+        <div class="mv-row"><button id="mvCutDone">✔ إنهاء القص</button></div>
+      </div>
+      <div class="mv-sec" id="mvLineGrp" style="display:none;">
+        <div class="mv-sh">⊹ خيارات الخط</div>
+        <label class="mv-lbl"><input type="checkbox" id="mvAutoMid"> علّم منتصف كل خط تلقائيًا</label>
+      </div>
+      <div class="mv-sec" id="mvPointGrp" style="display:none;">
+        <div class="mv-sh">● خيارات النقطة</div>
+        <label class="mv-lbl"><input type="checkbox" id="mvPointNum" checked> ترقيم النقط تلقائيًا (1، 2، 3…)</label>
+      </div>
+      <div class="mv-sec" id="mvCurveGrp" style="display:none;">
+        <div class="mv-sh">〰 المنحنى</div>
+        <div class="mv-row"><button id="mvCurveDone">✔ إنهاء المنحنى</button></div>
+      </div>
+      <div class="mv-sec">
+        <details>
+          <summary class="mv-sh" style="cursor:pointer;">🎚 تعديل الصورة</summary>
+          <div class="mv-lbl" id="mvAdjTarget" data-i18n-skip style="margin:2px 0 6px;"></div>
+          <div class="mv-adj"><span class="mv-lbl">السطوع</span><b class="mv-lbl" id="mvAdjBv" data-i18n-skip>0</b></div>
+          <input type="range" id="mvAdjB" min="-100" max="100" step="1" value="0">
+          <div class="mv-adj"><span class="mv-lbl">التباين</span><b class="mv-lbl" id="mvAdjCv" data-i18n-skip>0</b></div>
+          <input type="range" id="mvAdjC" min="-100" max="100" step="1" value="0">
+          <div class="mv-adj"><span class="mv-lbl">جاما (الإضاءة المتوسطة)</span><b class="mv-lbl" id="mvAdjGv" data-i18n-skip>1.00</b></div>
+          <input type="range" id="mvAdjG" min="30" max="300" step="1" value="100">
+          <div class="mv-adj"><span class="mv-lbl">التشبع</span><b class="mv-lbl" id="mvAdjSv" data-i18n-skip>0</b></div>
+          <input type="range" id="mvAdjS" min="-100" max="100" step="1" value="0">
+          <div class="mv-adj"><span class="mv-lbl">الحدّة (Sharpen)</span><b class="mv-lbl" id="mvAdjShv" data-i18n-skip>0</b></div>
+          <input type="range" id="mvAdjSh" min="0" max="100" step="1" value="0">
+          <div class="mv-row"><label class="mv-lbl"><input type="checkbox" id="mvAdjInv"> عكس الألوان (نيجاتيف)</label></div>
+          <div class="mv-row" style="margin-top:2px;"><label class="mv-lbl"><input type="checkbox" id="mvAdjGray"> تدرج رمادي</label></div>
+          <div class="mv-row" style="margin-top:2px;"><label class="mv-lbl"><input type="checkbox" id="mvAdjAuto"> تحسين تلقائي</label></div>
+          <div class="mv-row"><button id="mvAdjReset" style="width:100%;">↺ إعادة الضبط</button></div>
+        </details>
+      </div>
+      <div class="mv-sec">
+        <div class="mv-sh">🎨 اللون والسُمك</div>
+        <div class="mv-row" style="margin-top:0;">
+          <input type="color" id="mvColor" value="#39ff88">
+          <button class="mv-sw" data-c="#39ff88" style="background:#39ff88" title="أخضر"></button>
+          <button class="mv-sw" data-c="#ff4d4d" style="background:#ff4d4d" title="أحمر"></button>
+          <button class="mv-sw" data-c="#ffe66d" style="background:#ffe66d" title="أصفر"></button>
+          <button class="mv-sw" data-c="#4dd0e1" style="background:#4dd0e1" title="سماوي"></button>
+          <button class="mv-sw" data-c="#ff9f43" style="background:#ff9f43" title="برتقالي"></button>
+          <button class="mv-sw" data-c="#ffffff" style="background:#ffffff" title="أبيض"></button>
+          <button class="mv-sw" data-c="#111111" style="background:#111111" title="أسود"></button>
+        </div>
+        <div class="mv-row"><span class="mv-lbl">السُمك / حجم الخط:</span><span class="mv-lbl" id="mvWidthVal" data-i18n-skip>3</span></div>
+        <input type="range" id="mvWidth" min="1" max="12" step="1" value="3">
+      </div>
+      <div class="mv-sec">
+        <div class="mv-sh">💾 المراحل المحفوظة</div>
+        <button id="mvSaveStage" style="width:100%;">💾 حفظ المرحلة الحالية</button>
+        <div class="mv-stages" id="mvStages" data-i18n-skip></div>
+      </div>
+      <div class="mv-sec" style="border-bottom:none;">
+        <div class="mv-sh">⬇ تصدير</div>
+        <div class="mv-tgrid">
+          <button id="mvSave" class="wide">⬇ حفظ صورة بالقياسات</button>
+          <button id="mvExportJson">📦 ملف مشروع</button>
+          <button id="mvImportBtn">📂 فتح ملف</button>
+        </div>
+      </div>
+    </aside>
+    <div class="mv-main">
+      <div class="mv-stage" id="mvStage"><canvas id="mvCanvas"></canvas></div>
+      <div class="mv-compare" id="mvCompare" style="display:none;">
+        <div class="mv-cmp-bar">
+          <button id="mvCmpBack">⬅ رجوع للرسم</button>
+          <button id="mvCmpRefresh">⟳ تحديث الرسمة الحالية</button>
+          <button id="mvCmpZoomOut">➖</button>
+          <button id="mvCmpFit">ملائمة</button>
+          <button id="mvCmpZoomIn">➕</button>
+          <button id="mvCmpSave">⬇ حفظ المقارنة كصورة</button>
+        </div>
+        <div class="mv-cmp-sel">
+          <span class="mv-lbl">الرسمة الأولى</span><select id="mvCmpSelA" data-i18n-skip></select>
+          <span class="mv-lbl">الرسمة التانية</span><select id="mvCmpSelB" data-i18n-skip></select>
+        </div>
+        <div class="mv-cmp-view" id="mvCmpView"><canvas id="mvCmpCanvas"></canvas></div>
+      </div>
+      <canvas id="mvLoupe" class="mv-loupe" width="160" height="160"></canvas>
+      <div class="mv-empty" id="mvEmpty">
+        <div style="font-size:42px;">🖼️</div>
+        <div>مساحة رسم فاضية — ابدأ بإدراج صورة (أشعة مثلًا) أو ارسم مباشرة</div>
+        <button id="mvInsert2">🖼 إدراج صورة</button>
+      </div>
+    </div>
+  </div>
+  <div class="mv-hint" id="mvHint" data-i18n-skip></div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+<script type="module">
+window.__STANDALONE = true;
+const $ = id => document.getElementById(id);
+function showToast(msg, isError){
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(()=> t.classList.remove('show'), 2500);
+}
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// ===== أداة قياس الأطوال والزوايا والرسم والقص والتدوير على الصور =====
+const mv = { img:null, shapes:[], pending:[], pendRefs:[], tool:'line', zoom:1, fit:1, mmPerPx:null, mouse:null,
+             baseUrl:null, baseBlank:false, adj:null, adjCanvas:null, viewStack:[], prevTool:'move', zoomRect:null, loupe:false, lastWheel:0, cropTarget:null, cropRect:null, cmp:{open:false, zoom:1, cur:null, stages:[]}, sel:null, multi:new Set(), drag:null, down:null, color:'#39ff88', w:3, bound:false,
+             pivot:null, rot:{ phi:-Math.PI/2, from:null, total:0 } };
+const MV_EN = {
+"السُمك / حجم الخط:": "Thickness / font size:",
+"ترقيم النقط تلقائيًا (1، 2، 3…)": "Auto-number points (1, 2, 3…)",
+"مساحة رسم فاضية — ابدأ بإدراج صورة (أشعة مثلًا) أو ارسم مباشرة": "Empty canvas — start by inserting an image (e.g. an X-ray) or draw directly",
+"ملائمة": "Fit",
+"نسخ بدل القص (اترك الأصل مكانه)": "Copy instead of cut (keep the original in place)",
+"↩ تراجع": "↩ Undo",
+"↺ يسار": "↺ Left",
+"↻ يمين": "↻ Right",
+"∠ زاوية 4 نقاط": "∠ Angle (4 pts)",
+"⊙ توسيط المحور": "⊙ Center pivot",
+"● خيارات النقطة": "● Point options",
+"● نقطة": "● Point",
+"☑ تحديد الكل": "☑ Select all",
+"☰ الأدوات": "☰ Tools",
+"✂️ خيارات القص": "✂️ Cut options",
+"✂️ قص": "✂️ Cut",
+"✋ تحريك/تحديد": "✋ Move / Select",
+"✏️ الرسم": "✏️ Drawing",
+"✏️ رسم حر": "✏️ Freehand",
+"✔ إنهاء القص": "✔ Finish cut",
+"✔ إنهاء المنحنى": "✔ Finish curve",
+"✖ إغلاق": "✖ Close",
+"➖ خط": "➖ Line",
+"⬇ تصدير": "⬇ Export",
+"⬇ حفظ صورة بالقياسات": "⬇ Save image with measurements",
+"〰 المنحنى": "〰 Curve",
+"〰 منحنى (تقوس)": "〰 Curve (bowing)",
+"🎨 اللون والسُمك": "🎨 Color & thickness",
+"🎯 معايرة": "🎯 Calibrate",
+"💾 المراحل المحفوظة": "💾 Saved stages",
+"💾 حفظ المرحلة الحالية": "💾 Save current stage",
+"📂 فتح ملف": "📂 Open file",
+"📏 القياس": "📏 Measure",
+"📏 طول": "📏 Length",
+"📐 الرسم والقياس": "📐 Drawing & Measurement",
+"📐 قياس على صورة المريض": "📐 Measure on patient image",
+"📐 زاوية 3 نقاط": "📐 Angle (3 pts)",
+"📦 ملف مشروع": "📦 Project file",
+"🔄 التدوير حول المحور": "🔄 Rotate around pivot",
+"🔄 تدوير": "🔄 Rotate",
+"🔍➕ تكبير القطعة": "🔍➕ Enlarge piece",
+"🔍➖ تصغير القطعة": "🔍➖ Shrink piece",
+"🔗 زاوية بين خطين موجودين": "🔗 Angle between two lines",
+"🔤 كتابة": "🔤 Text",
+"🖐 تنقّل": "🖐 Pan",
+"🖼 إدراج صورة": "🖼 Insert image",
+"🗑 حذف المحدد": "🗑 Delete selected",
+"🗑 مسح الكل": "🗑 Clear all",
+"🛠 التعديل": "🛠 Edit",
+"⊹ منتصف خط": "⊹ Midpoint",
+"⊹ خيارات الخط": "⊹ Line options",
+"علّم منتصف كل خط تلقائيًا": "Auto-mark the midpoint of each line",
+"أبيض": "White",
+"أحمر": "Red",
+"أخضر": "Green",
+"أسود": "Black",
+"أصفر": "Yellow",
+"برتقالي": "Orange",
+"سماوي": "Cyan",
+"اضغط على بداية الخط": "Click the start of the line",
+"اضغط على نهاية الخط": "Click the end of the line",
+"اضغط على بداية الخط (بدون رقم)": "Click the start of the line (no label)",
+"اضغط على نهاية الخط — تقدر تعدّله بعدين بتحريك أي نقطة": "Click the end of the line — you can edit it later by moving any point",
+"اضغط لإضافة نقطة — تقدر تسحبها بعدين بأداة التحريك، ودبل-كليك على النقطة لتسمية/تعديل اسمها": "Click to add a point — drag it later with the Move tool; double-click a point to rename it",
+"اضغط نقاط على امتداد التقوس (نقطتين على الأقل)": "Click points along the curve (at least 2)",
+"اضغط على بداية جسم معروف الطول (مسطرة/مسمار/كرة معايرة)": "Click the start of an object of known length (ruler / screw / calibration ball)",
+"اضغط على نهايته ثم اكتب طوله الحقيقي بالمم": "Click its end, then type its real length in mm",
+"اضغط على النقطة الأولى": "Click the first point",
+"اضغط على رأس الزاوية": "Click the vertex",
+"اضغط على النقطة الثالثة": "Click the third point",
+"الخط الأول: نقطة البداية": "Line 1: start point",
+"الخط الأول: نقطة النهاية": "Line 1: end point",
+"الخط الثاني: نقطة البداية": "Line 2: start point",
+"الخط الثاني: نقطة النهاية": "Line 2: end point",
+"اضغط على خط موجود (الأول)": "Click an existing line (first)",
+"اضغط على الخط التاني ليظهر الرقم بينهم": "Click the second line to show the angle between them",
+"اسحب بالماوس/الصباع للرسم الحر": "Drag with mouse/finger to draw freehand",
+"اضغط في المكان اللي عايز تكتب فيه": "Click where you want to type",
+"اسحب أي نقطة لتحريكها، أو اسحب الخط/القطعة كلها. Shift+ضغط لتحديد أكتر من عنصر": "Drag any point to move it, or drag the whole line/piece. Shift+click to select multiple",
+"اسحب لتحريك الصورة (مفيد وانت مكبّر)": "Drag to pan the image (useful when zoomed in)",
+"اضغط على العناصر لتحديدها (أو إلغاء تحديدها) — اسحب النقطة البرتقالي لتغيير محور الدوران — اسحب النقطة السماوي لتدوير المحدد، أو اكتب الدرجات واضغط ↺ / ↻": "Click items to select (or deselect) — drag the orange dot to change the pivot — drag the cyan dot to rotate the selection, or type degrees and press ↺ / ↻",
+"اضغط على خط موجود لتحديد منتصفه، أو اضغط نقطتين لرسم خط جديد يتعلّم منتصفه تلقائيًا": "Click an existing line to mark its midpoint, or click two points to draw a new line with its midpoint marked automatically",
+"اضغط على نهاية الخط الجديد": "Click the end of the new line",
+"حدد عنصر أو أكتر الأول (اضغط عليه)": "Select one or more items first (click them)",
+"حدد 3 نقاط على الأقل حوالين الجزء": "Pick at least 3 points around the area",
+"تم القص — اسحب القطعة لتحريكها، أو استخدم أداة التدوير": "Cut done — drag the piece to move it, or use the Rotate tool",
+"حدد نقطتين على الأقل": "Pick at least 2 points",
+"اكتب النص:": "Enter the text:",
+"اضغط فوق خط موجود": "Click on an existing line",
+"الطول الحقيقي لهذا الجزء بالملّيمتر؟": "Real length of this part in millimetres?",
+"اسم النقطة:": "Point name:",
+"عدّل النص:": "Edit text:",
+"مسح كل القياسات والرسومات والقطع المقصوصة؟": "Clear all measurements, drawings and cut pieces?",
+"تعذر حفظ الصورة": "Could not save the image",
+"تعذر قراءة الصورة": "Could not read the image",
+"ملف الصورة غير صالح": "Invalid image file",
+"حدد قطعة مقصوصة أو صورة مدرجة الأول (بأداة التحريك)": "Select a cut piece or inserted image first (with the Move tool)",
+"فتح المرحلة هيستبدل الشغل الحالي (احفظه الأول لو محتاجه). تكمل؟": "Opening the stage will replace your current work (save it first if you need it). Continue?",
+"تعذر فتح المرحلة": "Could not open the stage",
+"اسم المرحلة:": "Stage name:",
+"تم حفظ المرحلة": "Stage saved",
+"تعذر حفظ المرحلة (مساحة التخزين؟)": "Could not save the stage (storage full?)",
+"تم فتح الملف": "File opened",
+"الملف ده مش ملف رسم صالح": "This is not a valid drawing file",
+"تعذر فتح الصورة": "Could not open the image",
+"الصورة دي متعذر تحميلها": "This image could not be loaded",
+"تم فتح المرحلة: ": "Stage opened: ",
+"التخزين غير متاح في المتصفح ده": "Storage is not available in this browser",
+"لسه مفيش مراحل محفوظة": "No saved stages yet",
+"فتح": "Open",
+"تنزيل صورة": "Download image",
+"حذف": "Delete",
+"🔲 كروب": "🔲 Crop",
+"🎚 تعديل الصورة": "🎚 Image adjustments",
+"السطوع": "Brightness",
+"التباين": "Contrast",
+"جاما (الإضاءة المتوسطة)": "Gamma (midtones)",
+"التشبع": "Saturation",
+"الحدّة (Sharpen)": "Sharpen",
+"عكس الألوان (نيجاتيف)": "Invert (negative)",
+"تدرج رمادي": "Grayscale",
+"تحسين تلقائي": "Auto enhance",
+"↺ إعادة الضبط": "↺ Reset",
+"🔲 كروب الصورة": "🔲 Crop image",
+"✔ تطبيق الكروب": "✔ Apply crop",
+"✖ إلغاء": "✖ Cancel",
+"⚖ مقارنة": "⚖ Compare",
+"⬅ رجوع للرسم": "⬅ Back to drawing",
+"⟳ تحديث الرسمة الحالية": "⟳ Refresh current drawing",
+"تزامن التمرير": "Sync scrolling",
+"⬇ حفظ المقارنة كصورة": "⬇ Save comparison as image",
+"الرسمة الحالية": "Current drawing",
+"اسحب على الصورة لتحديد منطقة الكروب، واسحب الأركان للتعديل، ثم اضغط «تطبيق الكروب» أو Enter": "Drag on the image to select the crop area, drag the corners to adjust, then press “Apply crop” or Enter",
+"منطقة الكروب صغيرة جدًا": "Crop area is too small",
+"تم الكروب (تقدر تتراجع بزر ↩ تراجع)": "Cropped (you can undo with ↩ Undo)",
+"احفظ مرحلة واحدة على الأقل من «💾 حفظ المرحلة الحالية» عشان تقارن": "Save at least one stage with “💾 Save current stage” to compare",
+"قارن بين رسمتين جنب بعض — اختار من القوائم، والتكبير والتمرير متزامنين": "Compare two drawings side by side — pick from the lists; zoom and scrolling are synced",
+"يتطبق على: الصورة الأساسية": "Applies to: base image",
+"يتطبق على: القطع المحددة": "Applies to: selected pieces",
+"🔍 زووم": "🔍 Zoom",
+"↩ العرض السابق": "↩ Previous view",
+"🔎 عدسة": "🔎 Loupe",
+"الرسمة الأولى": "First drawing",
+"الرسمة التانية": "Second drawing",
+"الرسمتين ظاهرين كصورة واحدة — اختار من القوائم، والتكبير للصورة كلها، وتقدر تحفظها كصورة واحدة": "Both drawings are shown as one image — pick from the lists, zoom applies to the whole image, and you can save it as one image",
+"اضغط لتكبير نقطة، أو اسحب مربع حوالين المنطقة لتكبيرها (Shift+ضغط للتصغير) — وبعدها بترجع لأداتك السابقة لوحدها": "Click to zoom in at a point, or drag a box around the area (Shift+click to zoom out) — then it returns to your previous tool automatically",
+"مفيش عرض سابق": "No previous view",
+"🔩 الصورة المدرجة / القطعة": "🔩 Inserted image / piece",
+"الشفافية": "Opacity",
+"العرض (تمدد أفقي)": "Width (horizontal stretch)",
+"الطول (تمدد رأسي)": "Height (vertical stretch)",
+"ثبّت النسبة بين الطول والعرض": "Lock aspect ratio",
+"⇋ قلب أفقي": "⇋ Flip horizontal",
+"⇅ قلب رأسي": "⇅ Flip vertical",
+"إزالة الخلفية": "Remove background",
+"تلقائي (من الأركان)": "Auto (from corners)",
+"لون مخصص": "Custom color",
+"درجة التحمّل (Tolerance)": "Tolerance",
+"نعومة الحواف": "Edge softness",
+"من الأطراف فقط (يحافظ على الأجزاء البيضاء جوه الجسم)": "From the edges only (keeps white areas inside the object)",
+"تلوين": "Tint",
+"قوة اللون": "Tint strength",
+"التدوير بالدرجة": "Rotation (degrees)",
+"⟲ يسار": "⟲ Left",
+"⟳ يمين": "⟳ Right",
+"الخطوة (درجة)": "Step (deg)",
+"الهدف: الصورة المدرجة المحددة فقط": "Target: the selected inserted image only",
+"الهدف: الصورة الأساسية (الخلفية)": "Target: the base image (background)",
+"لكروب صورة مدرجة: حددها بأداة التحريك الأول، وبعدين اختار كروب": "To crop an inserted image: select it with the Move tool first, then choose Crop"
+};
+mv.lang = 'ar';
+try{ mv.lang = localStorage.getItem('mvLang') === 'en' ? 'en' : 'ar'; }catch(_){}
+function mvT(ar){ return mv.lang === 'en' ? (MV_EN[ar] || ar) : ar; }
+function mvL(ar, en){ return mv.lang === 'en' ? en : ar; }
+const mvOrig = new WeakMap(), mvOrigTitle = new WeakMap();
+function mvApplyLang(){
+  const ov = $('measureViewer'), en = mv.lang === 'en';
+  ov.classList.toggle('ltr', en); ov.style.direction = en ? 'ltr' : 'rtl';
+  const w = document.createTreeWalker(ov, NodeFilter.SHOW_TEXT);
+  let n; while((n = w.nextNode())){
+    if(n.parentElement && n.parentElement.closest('[data-i18n-skip]')) continue;
+    let ar = mvOrig.get(n);
+    if(ar === undefined){
+      if(!/[\u0600-\u06FF]/.test(n.nodeValue)){ mvOrig.set(n, null); continue; }
+      ar = n.nodeValue.trim(); mvOrig.set(n, ar);
+    }
+    if(ar === null) continue;
+    n.nodeValue = en ? (MV_EN[ar] || ar) : ar;
+  }
+  ov.querySelectorAll('[title]').forEach(el=>{
+    if(el.closest('[data-i18n-skip]')) return;
+    let ar = mvOrigTitle.get(el); if(ar === undefined){ ar = el.getAttribute('title'); mvOrigTitle.set(el, ar); }
+    el.setAttribute('title', en ? (MV_EN[ar] || ar) : ar);
+  });
+  $('mvLang').textContent = en ? '🌐 عربي' : '🌐 EN';
+  $('mvLang').title = en ? 'التبديل للعربية' : 'Switch to English';
+  $('mvTitle').textContent = mvT(mv.titleAr || '📐 الرسم والقياس');
+  mvUpdateHint(); mvRenderStages(); mvSyncAdjUI();
+  if(mv.cmp.open){ mvCmpFillSelects($('mvCmpSelA').value, $('mvCmpSelB').value).then(mvCmpRender); }
+}
+const MV_NEED = { line:2, seg:2, calib:2, angle:3, angle2:4 };
+const MV_HINTS = {
+  line:     ['اضغط على بداية الخط', 'اضغط على نهاية الخط'],
+  seg:      ['اضغط على بداية الخط (بدون رقم)', 'اضغط على نهاية الخط — تقدر تعدّله بعدين بتحريك أي نقطة'],
+  mid:      ['اضغط على خط موجود لتحديد منتصفه، أو اضغط نقطتين لرسم خط جديد يتعلّم منتصفه تلقائيًا', 'اضغط على نهاية الخط الجديد'],
+  point:    ['اضغط لإضافة نقطة — تقدر تسحبها بعدين بأداة التحريك، ودبل-كليك على النقطة لتسمية/تعديل اسمها'],
+  curve:    ['اضغط نقاط على امتداد التقوس (نقطتين على الأقل)'],
+  calib:    ['اضغط على بداية جسم معروف الطول (مسطرة/مسمار/كرة معايرة)', 'اضغط على نهايته ثم اكتب طوله الحقيقي بالمم'],
+  angle:    ['اضغط على النقطة الأولى', 'اضغط على رأس الزاوية', 'اضغط على النقطة الثالثة'],
+  angle2:   ['الخط الأول: نقطة البداية', 'الخط الأول: نقطة النهاية', 'الخط الثاني: نقطة البداية', 'الخط الثاني: نقطة النهاية'],
+  linkangle:['اضغط على خط موجود (الأول)', 'اضغط على الخط التاني ليظهر الرقم بينهم'],
+  pen:      ['اسحب بالماوس/الصباع للرسم الحر'],
+  text:     ['اضغط في المكان اللي عايز تكتب فيه'],
+  move:     ['اسحب أي نقطة لتحريكها، أو اسحب الخط/القطعة كلها. Shift+ضغط لتحديد أكتر من عنصر'],
+  pan:      ['اسحب لتحريك الصورة (مفيد وانت مكبّر)'],
+  zoom:     ['اضغط لتكبير نقطة، أو اسحب مربع حوالين المنطقة لتكبيرها (Shift+ضغط للتصغير) — وبعدها بترجع لأداتك السابقة لوحدها'],
+  crop:     ['اسحب على الصورة لتحديد منطقة الكروب، واسحب الأركان للتعديل، ثم اضغط «تطبيق الكروب» أو Enter'],
+  rotate:   ['اضغط على العناصر لتحديدها (أو إلغاء تحديدها) — اسحب النقطة البرتقالي لتغيير محور الدوران — اسحب النقطة السماوي لتدوير المحدد، أو اكتب الدرجات واضغط ↺ / ↻']
+};
+function mvUpdateHint(){
+  let t;
+  if(mv.tool === 'cut'){
+    t = mv.pending.length < 3
+      ? mvL(`القص: اضغط نقاط حول الجزء المطلوب (${mv.pending.length} نقطة، على الأقل 3)`, `Cut: click points around the area (${mv.pending.length} points, min 3)`)
+      : mvL(`${mv.pending.length} نقطة — لإنهاء القص اضغط على النقطة الأولى أو دبل-كليك أو Enter`, `${mv.pending.length} points — to finish click the first point, double-click, or press Enter`);
+  } else if(mv.tool === 'curve'){
+    t = mv.pending.length < 2 ? mvT('اضغط نقاط على امتداد التقوس (نقطتين على الأقل)') : mvL(`${mv.pending.length} نقطة — دبل-كليك أو Enter لإنهاء المنحنى`, `${mv.pending.length} points — double-click or press Enter to finish the curve`);
+  } else {
+    const h = MV_HINTS[mv.tool];
+    const n = mv.tool === 'linkangle' ? mv.pendRefs.length : mv.pending.length;
+    t = mvT(h[Math.min(n, h.length-1)]);
+    if(['line','calib'].includes(mv.tool) || mv.sel){
+      t += mv.mmPerPx ? mvL(` — معايرة: 1 بكسل = ${mv.mmPerPx.toFixed(3)} مم`, ` — Calibration: 1 px = ${mv.mmPerPx.toFixed(3)} mm`) : mvL(' — القياسات بالبكسل لحد ما تعمل معايرة', ' — Measurements are in pixels until you calibrate');
+    }
+  }
+  $('mvHint').textContent = t;
+}
+function mvSetZoom(z){
+  if(!mv.img) return;
+  mv.zoom = Math.max(0.05, Math.min(16, z));
+  const cv = $('mvCanvas');
+  cv.style.width = (mv.img.naturalWidth * mv.zoom) + 'px';
+  cv.style.height = (mv.img.naturalHeight * mv.zoom) + 'px';
+}
+function mvViewPush(){
+  const st = $('mvStage'); mv.viewStack.push({ zoom:mv.zoom, sl:st.scrollLeft, st:st.scrollTop });
+  if(mv.viewStack.length > 30) mv.viewStack.shift();
+}
+function mvZoomAt(z, clientX, clientY, push){
+  if(!mv.img) return;
+  const st = $('mvStage'), cv = $('mvCanvas');
+  if(push !== false) mvViewPush();
+  const r0 = cv.getBoundingClientRect(), fx = (clientX - r0.left) / r0.width, fy = (clientY - r0.top) / r0.height;
+  mvSetZoom(z);
+  const r1 = cv.getBoundingClientRect();
+  st.scrollLeft += (r1.left + fx * r1.width) - clientX;
+  st.scrollTop += (r1.top + fy * r1.height) - clientY;
+  mvDraw();
+}
+function mvZoomCenter(f){
+  const r = $('mvStage').getBoundingClientRect();
+  mvZoomAt(mv.zoom * f, r.left + r.width/2, r.top + r.height/2);
+}
+function mvViewBack(){
+  const v = mv.viewStack.pop();
+  if(!v){ showToast(mvT('مفيش عرض سابق'), true); return; }
+  const st = $('mvStage'); mvSetZoom(v.zoom); st.scrollLeft = v.sl; st.scrollTop = v.st; mvDraw();
+}
+function mvUpdateLoupe(e, p){
+  const L = $('mvLoupe'); if(!L) return;
+  if(!mv.loupe || !mv.img || !e){ L.style.display = 'none'; return; }
+  const S = 160, M = 3, src = S / (mv.zoom * M), x = L.getContext('2d');
+  x.fillStyle = '#000'; x.fillRect(0, 0, S, S);
+  x.drawImage($('mvCanvas'), p.x - src/2, p.y - src/2, src, src, 0, 0, S, S);
+  x.lineWidth = 3; x.strokeStyle = 'rgba(0,0,0,.8)'; x.beginPath(); x.moveTo(S/2-14, S/2); x.lineTo(S/2+14, S/2); x.moveTo(S/2, S/2-14); x.lineTo(S/2, S/2+14); x.stroke();
+  x.lineWidth = 1.2; x.strokeStyle = '#ffe66d'; x.stroke();
+  const mr = L.parentElement.getBoundingClientRect();
+  let lx = e.clientX - mr.left + 28, ly = e.clientY - mr.top - S - 28;
+  if(lx + S > mr.width) lx = e.clientX - mr.left - S - 28;
+  if(ly < 0) ly = e.clientY - mr.top + 28;
+  L.style.left = lx + 'px'; L.style.top = ly + 'px'; L.style.display = 'block';
+}
+function mvToImg(e){
+  const cv = $('mvCanvas'), r = cv.getBoundingClientRect();
+  return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height };
+}
+function mvDist(a,b){ return Math.hypot(b.x-a.x, b.y-a.y); }
+function mvVecAngle(v1, v2){
+  const d = (v1.x*v2.x + v1.y*v2.y) / ((Math.hypot(v1.x,v1.y) * Math.hypot(v2.x,v2.y)) || 1);
+  return Math.acos(Math.max(-1, Math.min(1, d))) * 180 / Math.PI;
+}
+function mvLen(px){ return mv.mmPerPx ? (px * mv.mmPerPx).toFixed(1) + ' mm' : Math.round(px) + ' px'; }
+function mvLum(hex){
+  const h = hex.replace('#',''); const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  return (0.299*r + 0.587*g + 0.114*b) / 255;
+}
+function mvLabel(ctx, text, x, y, u, col, size){
+  ctx.font = `bold ${Math.round((size||17)*u)}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4*u; ctx.lineJoin = 'round';
+  ctx.strokeStyle = mvLum(col) > 0.55 ? 'rgba(0,0,0,.85)' : 'rgba(255,255,255,.9)';
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = col; ctx.fillText(text, x, y);
+}
+function mvDot(ctx, p, u, col, r){
+  ctx.beginPath(); ctx.arc(p.x, p.y, (r||4.5)*u, 0, Math.PI*2);
+  ctx.fillStyle = col; ctx.fill();
+  ctx.lineWidth = 1.5*u; ctx.strokeStyle = '#000'; ctx.stroke();
+}
+function mvSeg(ctx, a, b, lw, col){
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+  ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.strokeStyle = col; ctx.stroke();
+}
+// ----- التحديد (متعدد) -----
+function mvSetSel(sh, toggle){
+  if(!sh){ mv.sel = null; mv.multi = new Set(); mv.rot.from = null; mv.rot.total = 0; return; }
+  if(toggle){
+    if(mv.multi.has(sh)){ mv.multi.delete(sh); mv.sel = [...mv.multi].pop() || null; }
+    else { mv.multi.add(sh); mv.sel = sh; }
+  } else { mv.sel = sh; mv.multi = new Set([sh]); }
+  mv.rot.from = null; mv.rot.total = 0;
+}
+// ----- القطع المقصوصة -----
+function mvPieceWorldPoly(sh){
+  const cs = Math.cos(sh.theta), sn = Math.sin(sh.theta), sx = sh.sx || 1, sy = sh.sy || 1, fx = sh.fx ? -1 : 1, fy = sh.fy ? -1 : 1;
+  return sh.lpoly.map(q => { const X = q.x*sx*fx, Y = q.y*sy*fy; return { x: sh.C.x + X*cs - Y*sn, y: sh.C.y + X*sn + Y*cs }; });
+}
+function mvPtInPoly(p, poly){
+  let inside = false;
+  for(let i = 0, j = poly.length-1; i < poly.length; j = i++){
+    const a = poly[i], b = poly[j];
+    if(((a.y > p.y) !== (b.y > p.y)) && (p.x < (b.x - a.x) * (p.y - a.y) / ((b.y - a.y) || 1e-9) + a.x)) inside = !inside;
+  }
+  return inside;
+}
+function mvPieceHandlePositions(sh){
+  const cs = Math.cos(sh.theta), sn = Math.sin(sh.theta), out = [];
+  for(const hx of [-1,0,1]) for(const hy of [-1,0,1]){
+    if(!hx && !hy) continue;
+    const X = hx * sh.cw/2 * (sh.sx || 1), Y = hy * sh.ch/2 * (sh.sy || 1);
+    out.push({ hx, hy, x: sh.C.x + X*cs - Y*sn, y: sh.C.y + X*sn + Y*cs });
+  }
+  return out;
+}
+function mvHitPieceHandle(p){
+  const r = 11 / mv.zoom;
+  for(const sh of mv.shapes){
+    if(sh.type !== 'piece' || !mv.multi.has(sh)) continue;
+    for(const h of mvPieceHandlePositions(sh)) if(mvDist(p, h) <= r) return { shape:sh, hx:h.hx, hy:h.hy };
+  }
+  return null;
+}
+function mvPieceAlphaAt(sh, p){
+  const cs = Math.cos(-sh.theta), sn = Math.sin(-sh.theta), dx = p.x - sh.C.x, dy = p.y - sh.C.y;
+  let lx = (dx*cs - dy*sn) / (sh.sx || 1), ly = (dx*sn + dy*cs) / (sh.sy || 1);
+  if(sh.fx) lx = -lx; if(sh.fy) ly = -ly;
+  const ix = Math.floor(lx + sh.cw/2), iy = Math.floor(ly + sh.ch/2);
+  if(ix < 0 || iy < 0 || ix >= sh.cw || iy >= sh.ch) return 0;
+  if(!sh._al){
+    const d = sh.cvs.getContext('2d').getImageData(0, 0, sh.cw, sh.ch).data, al = new Uint8Array(sh.cw * sh.ch);
+    for(let i = 0; i < al.length; i++) al[i] = d[i*4+3];
+    sh._al = al;
+  }
+  return sh._al[iy*sh.cw + ix];
+}
+function mvPieceHitTest(sh, p){
+  if(!mvPtInPoly(p, mvPieceWorldPoly(sh))) return false;
+  if(sh.key && sh.key.on) return mvPieceAlphaAt(sh, p) > 25;
+  return true;
+}
+function mvTranslate(sh, dx, dy){
+  if(sh.type === 'piece'){ sh.C.x += dx; sh.C.y += dy; }
+  else mvPoints(sh).forEach(pt=>{ pt.x += dx; pt.y += dy; });
+}
+// نقاط الشكل القابلة للتحريك
+function mvPoints(sh){
+  switch(sh.type){
+    case 'line': case 'calib': return [sh.a, sh.b];
+    case 'angle': return [sh.a, sh.v, sh.b];
+    case 'angle2': return [sh.a, sh.b, sh.c, sh.d];
+    case 'pen': case 'curve': return sh.pts;
+    case 'point': return [sh.p];
+    case 'text': return [sh.p];
+    default: return [];
+  }
+}
+function mvShapePointsWorld(sh){
+  if(sh.type === 'piece') return mvPieceWorldPoly(sh);
+  if(sh.type === 'mid'){ const m = mvMidPos(sh); return m ? [m] : []; }
+  return mvPoints(sh);
+}
+function mvSegOf(ref){
+  const s = ref.s;
+  if(s.type === 'line' || s.type === 'calib') return [s.a, s.b];
+  if(s.type === 'angle2') return ref.i === 0 ? [s.a, s.b] : [s.c, s.d];
+  if(s.type === 'angle') return ref.i === 0 ? [s.v, s.a] : [s.v, s.b];
+  return null;
+}
+function mvAllSegRefs(){
+  const out = [];
+  mv.shapes.forEach(s=>{
+    if(s.type === 'line' || s.type === 'calib') out.push({s, i:0});
+    else if(s.type === 'angle2' || s.type === 'angle'){ out.push({s, i:0}); out.push({s, i:1}); }
+  });
+  return out;
+}
+function mvPtSegDist(p, a, b){
+  const dx = b.x-a.x, dy = b.y-a.y, l2 = dx*dx + dy*dy;
+  let t = l2 ? ((p.x-a.x)*dx + (p.y-a.y)*dy) / l2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t*dx), p.y - (a.y + t*dy));
+}
+function mvHitRadius(){ return 14 / mv.zoom; }
+function mvHitHandle(p){
+  const r = mvHitRadius();
+  for(let i = mv.shapes.length-1; i >= 0; i--){
+    const sh = mv.shapes[i];
+    if(sh.type === 'pen' || sh.type === 'piece') continue;
+    for(const pt of mvPoints(sh)) if(mvDist(p, pt) <= r) return { shape:sh, pt };
+  }
+  return null;
+}
+function mvTextBox(sh){
+  const u = 1 / mv.zoom, size = (10 + sh.w*3) * u;
+  return { w: Math.max(1, sh.text.length) * size * 0.6, h: size * 1.3 };
+}
+function mvHitBody(p){
+  const r = mvHitRadius();
+  for(let i = mv.shapes.length-1; i >= 0; i--){
+    const sh = mv.shapes[i];
+    if(sh.type === 'piece' || sh.type === 'cropmark') continue;
+    if(sh.type === 'pen'){
+      for(let k = 1; k < sh.pts.length; k++) if(mvPtSegDist(p, sh.pts[k-1], sh.pts[k]) <= r) return sh;
+    } else if(sh.type === 'text'){
+      const b = mvTextBox(sh);
+      if(Math.abs(p.x - sh.p.x) <= b.w/2 + r/2 && Math.abs(p.y - sh.p.y) <= b.h/2 + r/2) return sh;
+    } else if(sh.type === 'lineangle'){
+      const c = mvLinkLabelPos(sh);
+      if(c && mvDist(p, c) <= r * 2.5) return sh;
+    } else if(sh.type === 'mid'){
+      const m = mvMidPos(sh); if(m && mvDist(p, m) <= r) return sh;
+    } else if(sh.type === 'point'){
+      if(mvDist(p, sh.p) <= r) return sh;
+    } else if(sh.type === 'curve'){
+      const pl = mvCurvePolyline(sh.pts);
+      for(let k = 1; k < pl.length; k++) if(mvPtSegDist(p, pl[k-1], pl[k]) <= r) return sh;
+    } else {
+      const segs = (sh.type === 'angle') ? [[sh.v,sh.a],[sh.v,sh.b]] :
+                   (sh.type === 'angle2') ? [[sh.a,sh.b],[sh.c,sh.d]] : [[sh.a,sh.b]];
+      for(const [a,b] of segs) if(mvPtSegDist(p, a, b) <= r) return sh;
+    }
+  }
+  for(let i = mv.shapes.length-1; i >= 0; i--){
+    const sh = mv.shapes[i];
+    if(sh.type === 'piece' && mvPieceHitTest(sh, p)) return sh;
+  }
+  return null;
+}
+function mvHitSegRef(p){
+  const r = mvHitRadius(); let best = null, bd = r;
+  mvAllSegRefs().forEach(ref=>{
+    const sg = mvSegOf(ref); const d = mvPtSegDist(p, sg[0], sg[1]);
+    if(d <= bd){ bd = d; best = ref; }
+  });
+  return best;
+}
+function mvIntersect(a,b,c,d){
+  const den = (a.x-b.x)*(c.y-d.y) - (a.y-b.y)*(c.x-d.x);
+  if(Math.abs(den) < 1e-9) return null;
+  const t = ((a.x-c.x)*(c.y-d.y) - (a.y-c.y)*(c.x-d.x)) / den;
+  return { x: a.x + t*(b.x-a.x), y: a.y + t*(b.y-a.y) };
+}
+function mvLinkInfo(sh){
+  const s1 = mvSegOf(sh.r1), s2 = mvSegOf(sh.r2);
+  if(!s1 || !s2) return null;
+  const v1 = {x:s1[1].x-s1[0].x, y:s1[1].y-s1[0].y}, v2 = {x:s2[1].x-s2[0].x, y:s2[1].y-s2[0].y};
+  let ang = mvVecAngle(v1, v2); if(ang > 90) ang = 180 - ang;
+  const P = mvIntersect(s1[0], s1[1], s2[0], s2[1]);
+  const W = mv.img ? mv.img.naturalWidth : 1000, H = mv.img ? mv.img.naturalHeight : 1000;
+  const ok = P && P.x > -0.2*W && P.x < 1.2*W && P.y > -0.2*H && P.y < 1.2*H;
+  const m1 = {x:(s1[0].x+s1[1].x)/2, y:(s1[0].y+s1[1].y)/2}, m2 = {x:(s2[0].x+s2[1].x)/2, y:(s2[0].y+s2[1].y)/2};
+  const pos = ok ? P : {x:(m1.x+m2.x)/2, y:(m1.y+m2.y)/2};
+  return { s1, s2, ang, P: ok ? P : null, pos };
+}
+function mvLinkLabelPos(sh){
+  const info = mvLinkInfo(sh); if(!info) return null;
+  const u = 1 / mv.zoom;
+  return { x: info.pos.x, y: info.pos.y - (info.P ? 30*u : 0) };
+}
+function mvFmtAng(a){ return a.toFixed(1) + '°'; }
+
+function mvSnap(p){
+  const h = mvHitHandle(p);
+  if(h) return { x:h.pt.x, y:h.pt.y };
+  const r = mvHitRadius();
+  for(const sh of mv.shapes){
+    if(sh.type !== 'mid') continue;
+    const m = mvMidPos(sh);
+    if(m && mvDist(p, m) <= r) return m;
+  }
+  return p;
+}
+function mvMidPos(sh){
+  const sg = mvSegOf(sh.ref); if(!sg) return null;
+  return { x:(sg[0].x + sg[1].x)/2, y:(sg[0].y + sg[1].y)/2 };
+}
+// ----- المنحنيات (التقوس) -----
+function mvCurvePolyline(pts){
+  const n = pts.length;
+  if(n < 3) return pts.slice();
+  const out = [];
+  for(let i = 0; i < n-1; i++){
+    const p0 = pts[Math.max(0,i-1)], p1 = pts[i], p2 = pts[i+1], p3 = pts[Math.min(n-1,i+2)];
+    for(let k = 0; k < 14; k++){
+      const t = k/14, t2 = t*t, t3 = t2*t;
+      out.push({
+        x: 0.5*((2*p1.x) + (-p0.x+p2.x)*t + (2*p0.x-5*p1.x+4*p2.x-p3.x)*t2 + (-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+        y: 0.5*((2*p1.y) + (-p0.y+p2.y)*t + (2*p0.y-5*p1.y+4*p2.y-p3.y)*t2 + (-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+      });
+    }
+  }
+  out.push(pts[n-1]);
+  return out;
+}
+function mvPolyLen(pl){ let L = 0; for(let i = 1; i < pl.length; i++) L += mvDist(pl[i-1], pl[i]); return L; }
+
+// ----- التدوير -----
+function mvRotPt(pt, c, d){
+  const cs = Math.cos(d), sn = Math.sin(d), x = pt.x - c.x, y = pt.y - c.y;
+  pt.x = c.x + x*cs - y*sn; pt.y = c.y + x*sn + y*cs;
+}
+function mvRotateSel(delta){
+  if(!mv.pivot) return;
+  mv.multi.forEach(sh=>{
+    if(sh.type === 'piece'){ mvRotPt(sh.C, mv.pivot, delta); sh.theta += delta; }
+    else mvPoints(sh).forEach(pt=> mvRotPt(pt, mv.pivot, delta));
+  });
+}
+function mvSelCenter(){
+  const pts = [];
+  mv.multi.forEach(sh=> mvShapePointsWorld(sh).forEach(p=>pts.push(p)));
+  if(!pts.length) return mv.img ? { x:mv.img.naturalWidth/2, y:mv.img.naturalHeight/2 } : {x:0,y:0};
+  let a=1e9,b=1e9,c=-1e9,d=-1e9; pts.forEach(p=>{ a=Math.min(a,p.x); b=Math.min(b,p.y); c=Math.max(c,p.x); d=Math.max(d,p.y); });
+  return { x:(a+c)/2, y:(b+d)/2 };
+}
+function mvEnsurePivot(force){
+  if(!mv.pivot || force){ const c = mvSelCenter(); mv.pivot = { x:c.x, y:c.y }; mv.rot.phi = -Math.PI/2; mv.rot.from = null; mv.rot.total = 0; }
+}
+function mvRotRadius(){ return 90 / mv.zoom; }
+function mvRotHandlePos(){
+  const R = mvRotRadius();
+  return { x: mv.pivot.x + R*Math.cos(mv.rot.phi), y: mv.pivot.y + R*Math.sin(mv.rot.phi) };
+}
+function mvRotateByDeg(deg){
+  if(!mv.multi.size){ showToast(mvT('حدد عنصر أو أكتر الأول (اضغط عليه)'), true); return; }
+  mvEnsurePivot();
+  const d = deg * Math.PI / 180;
+  mv.rot.from = mv.rot.phi; mv.rot.total = d; mv.rot.phi += d;
+  mvRotateSel(d); mvDraw();
+}
+
+function mvDraw(forExport){
+  if(!mv.img) return;
+  mvUpdateEmpty();
+  const cv = $('mvCanvas'), ctx = cv.getContext('2d');
+  const u = forExport ? Math.max(cv.width, cv.height) / 1000 : 1 / mv.zoom;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(mvBaseSource(), 0, 0);
+  // فراغات القص ثم القطع نفسها (تحت الخطوط والقياسات)
+  mv.shapes.forEach(sh=>{
+    if(sh.type === 'piece' && sh.hole){
+      ctx.beginPath(); sh.hole.forEach((q,i)=> i ? ctx.lineTo(q.x,q.y) : ctx.moveTo(q.x,q.y)); ctx.closePath();
+      ctx.fillStyle = '#000'; ctx.fill();
+    }
+  });
+  mv.shapes.forEach(sh=>{
+    if(sh.type !== 'piece') return;
+    const hl = !forExport && mv.multi.has(sh);
+    const sx = sh.sx || 1, sy = sh.sy || 1;
+    ctx.save(); ctx.translate(sh.C.x, sh.C.y); ctx.rotate(sh.theta); ctx.scale(sx * (sh.fx ? -1 : 1), sy * (sh.fy ? -1 : 1));
+    ctx.globalAlpha = sh.op == null ? 1 : sh.op;
+    ctx.drawImage(sh.cvs, -sh.cw/2, -sh.ch/2);
+    ctx.restore();
+    const wp = mvPieceWorldPoly(sh);
+    const trace = ()=>{ ctx.beginPath(); wp.forEach((q,i)=> i ? ctx.lineTo(q.x,q.y) : ctx.moveTo(q.x,q.y)); ctx.closePath(); ctx.lineJoin = 'round'; };
+    if(hl){ trace(); ctx.lineWidth = (sh.w*0.5 + 4)*u; ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.stroke(); }
+    if(!sh.noOutline){ trace(); ctx.lineWidth = Math.max(1, sh.w*0.5)*u; ctx.strokeStyle = sh.color; ctx.stroke(); }
+    if(hl && mv.tool === 'move'){
+      mvPieceHandlePositions(sh).forEach(h=>{ ctx.fillStyle = '#fff'; ctx.fillRect(h.x - 6*u, h.y - 6*u, 12*u, 12*u); ctx.lineWidth = 1.5*u; ctx.strokeStyle = '#000'; ctx.strokeRect(h.x - 6*u, h.y - 6*u, 12*u, 12*u); });
+    }
+  });
+  mv.shapes.forEach(sh=>{
+    if(sh.type === 'piece') return;
+    const col = sh.color, lw = Math.max(1, sh.w) * 0.85 * u, dr = Math.max(4, sh.w*1.4);
+    const hl = !forExport && mv.multi.has(sh);
+    const hlSeg = (a,b)=>{ if(hl) mvSeg(ctx, a, b, lw + 7*u, 'rgba(255,255,255,.35)'); };
+    if(sh.type === 'line' || sh.type === 'calib'){
+      hlSeg(sh.a, sh.b); mvSeg(ctx, sh.a, sh.b, lw, col); mvDot(ctx, sh.a, u, col, dr); mvDot(ctx, sh.b, u, col, dr);
+      if(!sh.nolabel){
+        const mx=(sh.a.x+sh.b.x)/2, my=(sh.a.y+sh.b.y)/2 - (12 + sh.w*2)*u;
+        mvLabel(ctx, sh.type==='calib' ? mvL(`معايرة ${sh.mm} mm`, `Calib ${sh.mm} mm`) : mvLen(mvDist(sh.a,sh.b)), mx, my, u, col);
+      }
+    } else if(sh.type === 'angle'){
+      hlSeg(sh.v, sh.a); hlSeg(sh.v, sh.b);
+      mvSeg(ctx, sh.v, sh.a, lw, col); mvSeg(ctx, sh.v, sh.b, lw, col);
+      [sh.a, sh.v, sh.b].forEach(p=>mvDot(ctx,p,u,col,dr));
+      const a1 = Math.atan2(sh.a.y-sh.v.y, sh.a.x-sh.v.x), a2 = Math.atan2(sh.b.y-sh.v.y, sh.b.x-sh.v.x);
+      let diff = a2 - a1; while(diff > Math.PI) diff -= 2*Math.PI; while(diff < -Math.PI) diff += 2*Math.PI;
+      const r = 38*u;
+      ctx.beginPath(); ctx.arc(sh.v.x, sh.v.y, r, a1, a1 + diff, diff < 0);
+      ctx.lineWidth = lw*0.8; ctx.strokeStyle = col; ctx.stroke();
+      const deg = mvVecAngle({x:sh.a.x-sh.v.x,y:sh.a.y-sh.v.y},{x:sh.b.x-sh.v.x,y:sh.b.y-sh.v.y});
+      const mid = a1 + diff/2;
+      mvLabel(ctx, mvFmtAng(deg), sh.v.x + Math.cos(mid)*(r+34*u), sh.v.y + Math.sin(mid)*(r+34*u), u, col);
+    } else if(sh.type === 'angle2'){
+      hlSeg(sh.a, sh.b); hlSeg(sh.c, sh.d);
+      mvSeg(ctx, sh.a, sh.b, lw, col); mvSeg(ctx, sh.c, sh.d, lw, col);
+      [sh.a, sh.b, sh.c, sh.d].forEach(p=>mvDot(ctx,p,u,col,dr));
+      let ang = mvVecAngle({x:sh.b.x-sh.a.x,y:sh.b.y-sh.a.y},{x:sh.d.x-sh.c.x,y:sh.d.y-sh.c.y}); if(ang > 90) ang = 180 - ang;
+      mvLabel(ctx, '∠ ' + mvFmtAng(ang), (sh.c.x+sh.d.x)/2, (sh.c.y+sh.d.y)/2 - 18*u, u, col);
+    } else if(sh.type === 'lineangle'){
+      const info = mvLinkInfo(sh); if(!info) return;
+      if(info.P){
+        ctx.setLineDash([7*u, 6*u]);
+        [info.s1, info.s2].forEach(sg=>{
+          const far = mvDist(sg[0], info.P) > mvDist(sg[1], info.P) ? sg[0] : sg[1];
+          const near = far === sg[0] ? sg[1] : sg[0];
+          mvSeg(ctx, near, info.P, lw*0.6, col);
+        });
+        ctx.setLineDash([]);
+        mvDot(ctx, info.P, u, col, 3.5);
+      } else {
+        ctx.setLineDash([5*u, 5*u]);
+        mvSeg(ctx, {x:(info.s1[0].x+info.s1[1].x)/2,y:(info.s1[0].y+info.s1[1].y)/2}, {x:(info.s2[0].x+info.s2[1].x)/2,y:(info.s2[0].y+info.s2[1].y)/2}, lw*0.5, col);
+        ctx.setLineDash([]);
+      }
+      const lp = mvLinkLabelPos(sh);
+      if(hl){ ctx.beginPath(); ctx.arc(lp.x, lp.y, 26*u, 0, Math.PI*2); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2*u; ctx.stroke(); }
+      mvLabel(ctx, '∠ ' + mvFmtAng(info.ang), lp.x, lp.y, u, col);
+    } else if(sh.type === 'pen'){
+      if(sh.pts.length < 2){ mvDot(ctx, sh.pts[0], u, col, lw/u/2 + 1); return; }
+      const trace = ()=>{ ctx.beginPath(); ctx.moveTo(sh.pts[0].x, sh.pts[0].y); for(let k=1;k<sh.pts.length;k++) ctx.lineTo(sh.pts[k].x, sh.pts[k].y); ctx.lineJoin='round'; ctx.lineCap='round'; };
+      if(hl){ trace(); ctx.lineWidth = lw + 7*u; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.stroke(); }
+      trace(); ctx.lineWidth = lw; ctx.strokeStyle = col; ctx.stroke();
+    } else if(sh.type === 'mid'){
+      const m = mvMidPos(sh); if(!m) return;
+      const r = Math.max(6, sh.w*2.2) * u;
+      if(hl){ ctx.beginPath(); ctx.arc(m.x, m.y, r + 8*u, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill(); }
+      ctx.beginPath(); ctx.moveTo(m.x, m.y - r); ctx.lineTo(m.x + r, m.y); ctx.lineTo(m.x, m.y + r); ctx.lineTo(m.x - r, m.y); ctx.closePath();
+      ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1.8*u; ctx.strokeStyle = '#000'; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m.x - r*1.7, m.y); ctx.lineTo(m.x + r*1.7, m.y); ctx.moveTo(m.x, m.y - r*1.7); ctx.lineTo(m.x, m.y + r*1.7);
+      ctx.lineWidth = 1.2*u; ctx.strokeStyle = col; ctx.stroke();
+    } else if(sh.type === 'point'){
+      const r = Math.max(5, sh.w*2);
+      if(hl){ ctx.beginPath(); ctx.arc(sh.p.x, sh.p.y, (r+7)*u, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill(); }
+      ctx.beginPath(); ctx.arc(sh.p.x, sh.p.y, (r+3)*u, 0, Math.PI*2); ctx.lineWidth = 1.5*u; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.stroke();
+      mvDot(ctx, sh.p, u, col, r);
+      if(sh.label) mvLabel(ctx, sh.label, sh.p.x, sh.p.y - (r + 14)*u, u, col);
+    } else if(sh.type === 'curve'){
+      const pl = mvCurvePolyline(sh.pts);
+      const trace = ()=>{ ctx.beginPath(); pl.forEach((q,i)=> i ? ctx.lineTo(q.x,q.y) : ctx.moveTo(q.x,q.y)); ctx.lineJoin='round'; ctx.lineCap='round'; };
+      if(hl){ trace(); ctx.lineWidth = lw + 7*u; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.stroke(); }
+      trace(); ctx.lineWidth = lw; ctx.strokeStyle = col; ctx.stroke();
+      sh.pts.forEach(q=> mvDot(ctx, q, u, col, dr));
+      if(!sh.nolabel){ const m = pl[Math.floor(pl.length/2)]; mvLabel(ctx, mvLen(mvPolyLen(pl)), m.x, m.y - (14 + sh.w*2)*u, u, col); }
+    } else if(sh.type === 'text'){
+      const size = 10 + sh.w*3;
+      mvLabel(ctx, sh.text, sh.p.x, sh.p.y, u, col, size);
+      if(hl){
+        const m = ctx.measureText(sh.text); const w = m.width + 12*u, h = size*1.3*u;
+        ctx.setLineDash([5*u,4*u]); ctx.lineWidth = 1.5*u; ctx.strokeStyle = 'rgba(255,255,255,.8)';
+        ctx.strokeRect(sh.p.x - w/2, sh.p.y - h/2, w, h); ctx.setLineDash([]);
+      }
+    }
+    if(hl){ mvPoints(sh).forEach(p=>{ if(sh.type==='pen') return; ctx.beginPath(); ctx.arc(p.x,p.y,(dr+5)*u,0,Math.PI*2); ctx.lineWidth=2*u; ctx.strokeStyle='#fff'; ctx.stroke(); }); }
+  });
+  if(forExport) return;
+  // معاينة الرسم الجاري
+  mv.pendRefs.forEach(ref=>{ const sg = mvSegOf(ref); if(sg) mvSeg(ctx, sg[0], sg[1], 7*u, 'rgba(255,255,255,.55)'); });
+  if(mv.tool === 'cut'){
+    const q = mv.pending;
+    if(q.length){
+      ctx.beginPath(); q.forEach((pt,i)=> i ? ctx.lineTo(pt.x,pt.y) : ctx.moveTo(pt.x,pt.y));
+      if(q.length >= 3){ ctx.closePath(); ctx.fillStyle = 'rgba(255,230,109,.15)'; ctx.fill(); }
+      ctx.lineWidth = 2*u; ctx.strokeStyle = '#ffe66d'; ctx.setLineDash([8*u,5*u]); ctx.stroke(); ctx.setLineDash([]);
+      q.forEach((pt,i)=> mvDot(ctx, pt, u, i === 0 ? '#39ff88' : '#ffffff', i === 0 ? 7 : 4.5));
+      if(mv.mouse){ ctx.setLineDash([4*u,5*u]); mvSeg(ctx, q[q.length-1], mv.mouse, 1.5*u, 'rgba(255,255,255,.8)'); ctx.setLineDash([]); }
+    }
+  } else {
+    mv.pending.forEach(p=> mvDot(ctx, p, u, '#ffffff', 5));
+    if(mv.tool === 'curve' && mv.pending.length >= 2){
+      const pl = mvCurvePolyline(mv.pending); ctx.beginPath(); pl.forEach((q,i)=> i ? ctx.lineTo(q.x,q.y) : ctx.moveTo(q.x,q.y));
+      ctx.setLineDash([6*u,5*u]); ctx.lineWidth = 2*u; ctx.strokeStyle = mv.color; ctx.stroke(); ctx.setLineDash([]);
+    }
+    if(mv.pending.length && mv.mouse){
+      const last = mv.pending[mv.pending.length-1];
+      ctx.setLineDash([8*u, 6*u]); mvSeg(ctx, last, mv.mouse, 2*u, 'rgba(255,255,255,.85)'); ctx.setLineDash([]);
+    }
+  }
+  if(mv.tool === 'zoom' && mv.zoomRect){
+    const z = mv.zoomRect, zx = Math.min(z.x0, z.x1), zy = Math.min(z.y0, z.y1), zw = Math.abs(z.x1 - z.x0), zh = Math.abs(z.y1 - z.y0);
+    ctx.fillStyle = 'rgba(77,208,225,.15)'; ctx.fillRect(zx, zy, zw, zh); ctx.setLineDash([6*u,4*u]); ctx.lineWidth = 2*u; ctx.strokeStyle = '#4dd0e1'; ctx.strokeRect(zx, zy, zw, zh); ctx.setLineDash([]);
+  }
+  if(mv.tool === 'crop' && mv.cropRect){
+    const n = mvCropNorm(), W = cv.width, H = cv.height;
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.beginPath(); ctx.rect(0,0,W,H); ctx.rect(n.x0, n.y0, n.x1-n.x0, n.y1-n.y0); ctx.fill('evenodd'); ctx.restore();
+    ctx.setLineDash([8*u,5*u]); ctx.lineWidth = 2*u; ctx.strokeStyle = '#fff'; ctx.strokeRect(n.x0, n.y0, n.x1-n.x0, n.y1-n.y0); ctx.setLineDash([]);
+    [[n.x0,n.y0],[n.x1,n.y0],[n.x1,n.y1],[n.x0,n.y1]].forEach(c=>{ ctx.fillStyle = '#fff'; ctx.fillRect(c[0]-6*u, c[1]-6*u, 12*u, 12*u); ctx.lineWidth = 1.5*u; ctx.strokeStyle = '#000'; ctx.strokeRect(c[0]-6*u, c[1]-6*u, 12*u, 12*u); });
+    mvLabel(ctx, Math.round(n.x1-n.x0) + ' × ' + Math.round(n.y1-n.y0) + ' px', (n.x0+n.x1)/2, Math.max(n.y0 - 16*u, 14*u), u, '#ffe66d');
+  }
+  // أدوات التدوير: المحور + الحلقة + السهم
+  if(mv.tool === 'rotate' && mv.pivot){
+    const P = mv.pivot, R = mvRotRadius();
+    ctx.beginPath(); ctx.arc(P.x, P.y, R, 0, Math.PI*2);
+    ctx.setLineDash([6*u,6*u]); ctx.lineWidth = 1.5*u; ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.stroke(); ctx.setLineDash([]);
+    if(mv.rot.from !== null && Math.abs(mv.rot.total) > 1e-4){
+      const r = R * 0.82, tot = Math.max(-Math.PI*1.98, Math.min(Math.PI*1.98, mv.rot.total)), a0 = mv.rot.from, a1 = a0 + tot, sg = tot > 0 ? 1 : -1;
+      ctx.beginPath(); ctx.arc(P.x, P.y, r, a0, a1, tot < 0);
+      ctx.lineWidth = 3.5*u; ctx.strokeStyle = '#ffb347'; ctx.lineCap = 'round'; ctx.stroke();
+      const ex = P.x + r*Math.cos(a1), ey = P.y + r*Math.sin(a1);
+      const tx = -Math.sin(a1)*sg, ty = Math.cos(a1)*sg, nx = Math.cos(a1), ny = Math.sin(a1), s = 13*u;
+      ctx.beginPath();
+      ctx.moveTo(ex + tx*s, ey + ty*s);
+      ctx.lineTo(ex - tx*s*0.3 + nx*s*0.7, ey - ty*s*0.3 + ny*s*0.7);
+      ctx.lineTo(ex - tx*s*0.3 - nx*s*0.7, ey - ty*s*0.3 - ny*s*0.7);
+      ctx.closePath(); ctx.fillStyle = '#ffb347'; ctx.fill(); ctx.lineWidth = 1.2*u; ctx.strokeStyle = '#000'; ctx.stroke();
+      const am = a0 + tot/2;
+      mvLabel(ctx, (tot > 0 ? '↻ ' : '↺ ') + Math.abs(mv.rot.total*180/Math.PI).toFixed(1) + '°', P.x + (r+28*u)*Math.cos(am), P.y + (r+28*u)*Math.sin(am), u, '#ffb347');
+    }
+    const H = mvRotHandlePos();
+    ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(H.x, H.y); ctx.lineWidth = 1.2*u; ctx.strokeStyle = 'rgba(77,208,225,.7)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(H.x, H.y, 9*u, 0, Math.PI*2); ctx.fillStyle = '#4dd0e1'; ctx.fill(); ctx.lineWidth = 2*u; ctx.strokeStyle = '#000'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(P.x, P.y, 9*u, 0, Math.PI*2); ctx.fillStyle = '#ff7a1a'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(P.x-17*u, P.y); ctx.lineTo(P.x+17*u, P.y); ctx.moveTo(P.x, P.y-17*u); ctx.lineTo(P.x, P.y+17*u);
+    ctx.lineWidth = 2*u; ctx.strokeStyle = '#ff7a1a'; ctx.stroke();
+  }
+}
+function mvRecalcCalib(){
+  const c = [...mv.shapes].reverse().find(sh => sh.type === 'calib');
+  mv.mmPerPx = c ? c.mm / (mvDist(c.a, c.b) || 1) : null;
+}
+function mvSyncControls(){
+  const s = mv.sel;
+  if(s){ mv.color = s.color; mv.w = s.w; }
+  $('mvColor').value = mv.color; $('mvWidth').value = mv.w; $('mvWidthVal').textContent = mv.w;
+  $('mvDelSel').style.visibility = mv.multi.size ? 'visible' : 'hidden';
+  mvSyncAdjUI(); mvSyncPieceUI();
+}
+function mvSetTool(t){
+  const keepWork = (t === 'zoom') || (mv.tool === 'zoom');
+  if(t === 'zoom' && mv.tool !== 'zoom') mv.prevTool = mv.tool;
+  if(t === 'crop' && mv.tool !== 'crop'){ mv.cropTarget = mvSelPieces()[0] || null; }
+  mv.tool = t; mv.drag = null; mv.zoomRect = null;
+  if(!keepWork){ mv.pending = []; mv.pendRefs = []; }
+  if(!keepWork && t !== 'move' && t !== 'rotate' && t !== 'crop') mvSetSel(null);
+  const ids = { line:'mvToolLine', seg:'mvToolSeg', angle:'mvToolAngle', angle2:'mvToolAngle2', linkangle:'mvToolLink', calib:'mvToolCalib',
+                pen:'mvToolPen', text:'mvToolText', curve:'mvToolCurve', mid:'mvToolMid', point:'mvToolPoint', crop:'mvToolCrop', zoom:'mvToolZoom', cut:'mvToolCut', move:'mvToolMove', rotate:'mvToolRotate', pan:'mvToolPan' };
+  Object.entries(ids).forEach(([k,id])=> $(id).classList.toggle('active', k === t));
+  $('mvCanvas').style.cursor = t === 'move' ? 'move' : t === 'pan' ? 'grab' : t === 'text' ? 'text' : t === 'zoom' ? 'zoom-in' : 'crosshair';
+  $('mvRotGrp').style.display = t === 'rotate' ? 'block' : 'none';
+  $('mvCutGrp').style.display = t === 'cut' ? 'block' : 'none';
+  $('mvCurveGrp').style.display = t === 'curve' ? 'block' : 'none';
+  $('mvPointGrp').style.display = t === 'point' ? 'block' : 'none';
+  $('mvCropGrp').style.display = t === 'crop' ? 'block' : 'none';
+  if(t !== 'crop'){ mv.cropRect = null; mv.cropTarget = null; }
+  else $('mvCropTarget').textContent = mvT(mv.cropTarget ? 'الهدف: الصورة المدرجة المحددة فقط' : 'الهدف: الصورة الأساسية (الخلفية)');
+  $('mvLineGrp').style.display = (t === 'line' || t === 'seg') ? 'block' : 'none';
+  if(window.innerWidth <= 760) $('mvSide').classList.remove('open');
+  if(t === 'rotate') mvEnsurePivot();
+  if(mv.img){
+    const st = $('mvStage'), wasFit = Math.abs(mv.zoom - mv.fit) < 1e-6;
+    mv.fit = Math.min((st.clientWidth - 24) / mv.img.naturalWidth, (st.clientHeight - 24) / mv.img.naturalHeight);
+    if(wasFit) mvSetZoom(mv.fit);
+  }
+  mvSyncControls(); mvUpdateHint(); mvDraw();
+}
+function mvNewShape(sh){
+  sh.color = mv.color; sh.w = mv.w;
+  mv.shapes.push(sh);
+  return sh;
+}
+function mvFinishCut(){
+  const q = mv.pending;
+  if(q.length < 3){ showToast(mvT('حدد 3 نقاط على الأقل حوالين الجزء'), true); return; }
+  mv.pending = [];
+  let minx=1e9, miny=1e9, maxx=-1e9, maxy=-1e9;
+  q.forEach(p=>{ minx=Math.min(minx,p.x); miny=Math.min(miny,p.y); maxx=Math.max(maxx,p.x); maxy=Math.max(maxy,p.y); });
+  const bx = Math.floor(minx), by = Math.floor(miny), bw = Math.max(2, Math.ceil(maxx - bx)), bh = Math.max(2, Math.ceil(maxy - by));
+  const tmp = document.createElement('canvas'); tmp.width = mv.img.naturalWidth; tmp.height = mv.img.naturalHeight;
+  const t = tmp.getContext('2d'); t.drawImage(mvBaseSource(), 0, 0);
+  mv.shapes.forEach(s=>{ if(s.type === 'piece' && s.hole){ t.beginPath(); s.hole.forEach((h,i)=> i ? t.lineTo(h.x,h.y) : t.moveTo(h.x,h.y)); t.closePath(); t.fillStyle = '#000'; t.fill(); } });
+  const pc = document.createElement('canvas'); pc.width = bw; pc.height = bh;
+  const x = pc.getContext('2d');
+  x.beginPath(); q.forEach((p,i)=> i ? x.lineTo(p.x-bx, p.y-by) : x.moveTo(p.x-bx, p.y-by)); x.closePath(); x.clip();
+  x.drawImage(tmp, -bx, -by);
+  const cx = bx + bw/2, cy = by + bh/2;
+  const keep = $('mvKeepOrig').checked;
+  const sh = mvNewShape({ type:'piece', cvs:pc, cw:bw, ch:bh, lpoly:q.map(p=>({x:p.x-cx, y:p.y-cy})), C:{x:cx, y:cy}, theta:0, sx:1, sy:1,
+                          hole: keep ? null : q.map(p=>({x:p.x, y:p.y})) });
+  mvSetTool('move'); mvSetSel(sh); mvSyncControls(); mvUpdateHint(); mvDraw();
+  showToast(mvT('تم القص — اسحب القطعة لتحريكها، أو استخدم أداة التدوير'));
+}
+function mvFinishCurve(){
+  const q = mv.pending;
+  if(q.length < 2){ showToast(mvT('حدد نقطتين على الأقل'), true); return; }
+  mv.pending = [];
+  mvNewShape({ type:'curve', pts:q });
+  mvUpdateHint(); mvDraw();
+}
+function mvClickAt(p){
+  const tool = mv.tool;
+  if(tool === 'mid'){
+    if(!mv.pending.length){
+      const ref = mvHitSegRef(p);
+      if(ref){ mvNewShape({ type:'mid', ref }); mvUpdateHint(); mvDraw(); return; }
+    }
+    mv.pending.push(mvSnap(p));
+    if(mv.pending.length >= 2){
+      const q = mv.pending; mv.pending = [];
+      const ln = mvNewShape({ type:'line', a:q[0], b:q[1] });
+      mvNewShape({ type:'mid', ref:{ s:ln, i:0 } });
+    }
+    mvUpdateHint(); mvDraw(); return;
+  }
+  if(tool === 'point'){
+    const n = mv.shapes.filter(s=>s.type === 'point').length + 1;
+    const sh = mvNewShape({ type:'point', p:{x:p.x, y:p.y}, label: $('mvPointNum').checked ? String(n) : '' });
+    mvUpdateHint(); mvDraw(); return;
+  }
+  if(tool === 'curve'){ mv.pending.push(mvSnap(p)); mvUpdateHint(); mvDraw(); return; }
+  if(tool === 'cut'){
+    if(mv.pending.length >= 3 && mvDist(p, mv.pending[0]) <= mvHitRadius()){ mvFinishCut(); return; }
+    mv.pending.push(p); mvUpdateHint(); mvDraw(); return;
+  }
+  if(tool === 'text'){
+    const t = prompt(mvT('اكتب النص:'));
+    if(t && t.trim()){ const sh = mvNewShape({type:'text', p, text:t.trim()}); mvSetTool('move'); mvSetSel(sh); mvSyncControls(); mvDraw(); }
+    return;
+  }
+  if(tool === 'linkangle'){
+    const ref = mvHitSegRef(p);
+    if(!ref){ showToast(mvT('اضغط فوق خط موجود'), true); return; }
+    if(mv.pendRefs[0] && mv.pendRefs[0].s === ref.s && mv.pendRefs[0].i === ref.i) return;
+    mv.pendRefs.push(ref);
+    if(mv.pendRefs.length >= 2){
+      mvNewShape({type:'lineangle', r1:mv.pendRefs[0], r2:mv.pendRefs[1]});
+      mv.pendRefs = [];
+    }
+    mvUpdateHint(); mvDraw(); return;
+  }
+  if(!MV_NEED[tool]) return;
+  mv.pending.push(mvSnap(p));
+  if(mv.pending.length >= MV_NEED[tool]){
+    const q = mv.pending; mv.pending = [];
+    if(tool === 'line' || tool === 'seg'){
+      const ln = mvNewShape(tool === 'seg' ? {type:'line', a:q[0], b:q[1], nolabel:true} : {type:'line', a:q[0], b:q[1]});
+      if($('mvAutoMid').checked) mvNewShape({ type:'mid', ref:{ s:ln, i:0 } });
+    }
+    else if(tool === 'angle') mvNewShape({type:'angle', a:q[0], v:q[1], b:q[2]});
+    else if(tool === 'angle2') mvNewShape({type:'angle2', a:q[0], b:q[1], c:q[2], d:q[3]});
+    else if(tool === 'calib'){
+      const len = mvDist(q[0], q[1]);
+      const v = parseFloat(String(prompt(mvT('الطول الحقيقي لهذا الجزء بالملّيمتر؟')) || '').replace(',', '.'));
+      if(len > 0 && v > 0){ mvNewShape({type:'calib', a:q[0], b:q[1], mm:v}); mvRecalcCalib(); }
+    }
+  }
+  mvUpdateHint(); mvDraw();
+}
+function mvDeleteShape(sh){
+  const dead = new Set([sh]);
+  mv.shapes.forEach(s=>{ if((s.type === 'lineangle' && (dead.has(s.r1.s) || dead.has(s.r2.s))) || (s.type === 'mid' && dead.has(s.ref.s))) dead.add(s); });
+  mv.shapes = mv.shapes.filter(s=>!dead.has(s));
+  dead.forEach(s=> mv.multi.delete(s));
+  if(dead.has(mv.sel)) mv.sel = [...mv.multi].pop() || null;
+  mvRecalcCalib();
+}
+function mvBind(){
+  if(mv.bound) return; mv.bound = true;
+  const cv = $('mvCanvas'), st = $('mvStage');
+  cv.style.touchAction = 'none';
+  cv.addEventListener('pointerdown', e=>{
+    if(e.button > 0) return;
+    const p = mvToImg(e);
+    mv.down = { x:e.clientX, y:e.clientY, moved:false };
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+    const multiKey = e.shiftKey || e.ctrlKey || e.metaKey;
+    if(mv.tool === 'pan'){ mv.drag = { mode:'pan', sx:e.clientX, sy:e.clientY, sl:st.scrollLeft, st:st.scrollTop }; cv.style.cursor = 'grabbing'; return; }
+    if(mv.tool === 'pen'){
+      const sh = mvNewShape({type:'pen', pts:[p]});
+      mv.drag = { mode:'pen', shape:sh }; mvDraw(); return;
+    }
+    if(mv.tool === 'zoom'){
+      mv.zoomRect = { x0:p.x, y0:p.y, x1:p.x, y1:p.y, cx:e.clientX, cy:e.clientY, out:(e.shiftKey || e.altKey || e.ctrlKey) };
+      mv.drag = { mode:'zoomrect' }; return;
+    }
+    if(mv.tool === 'crop'){
+      const rr = mvHitRadius();
+      if(mv.cropRect){
+        const n = mvCropNorm(), cs = [[n.x0,n.y0],[n.x1,n.y0],[n.x1,n.y1],[n.x0,n.y1]];
+        const hi = cs.findIndex(c => mvDist(p, {x:c[0], y:c[1]}) <= rr*1.3);
+        if(hi >= 0){ const o = cs[(hi+2)%4]; mv.cropRect = { x0:o[0], y0:o[1], x1:cs[hi][0], y1:cs[hi][1] }; mv.drag = { mode:'cropc', fx:o[0], fy:o[1] }; return; }
+        if(p.x > n.x0 && p.x < n.x1 && p.y > n.y0 && p.y < n.y1){ mv.drag = { mode:'cropmove', last:p }; return; }
+      }
+      mv.cropRect = { x0:p.x, y0:p.y, x1:p.x, y1:p.y }; mv.drag = { mode:'cropnew' }; return;
+    }
+    if(mv.tool === 'rotate'){
+      mvEnsurePivot();
+      const r = mvHitRadius();
+      if(mvDist(p, mv.pivot) <= r){ mv.drag = { mode:'pivot' }; return; }
+      if(mvDist(p, mvRotHandlePos()) <= r){
+        if(!mv.multi.size){ showToast(mvT('حدد عنصر أو أكتر الأول (اضغط عليه)'), true); mv.drag = null; return; }
+        mv.rot.from = mv.rot.phi; mv.rot.total = 0; mv.drag = { mode:'rot' }; return;
+      }
+      const b = mvHitBody(p);
+      if(b){ mvSetSel(b, true); mvSyncControls(); mvDraw(); }
+      mv.drag = null; return;
+    }
+    if(mv.tool === 'move' && !mv.pending.length){
+      const ph = mvHitPieceHandle(p);
+      if(ph){ mv.drag = { mode:'presize', shape:ph.shape, hx:ph.hx, hy:ph.hy, sx0:ph.shape.sx || 1, sy0:ph.shape.sy || 1 }; return; }
+    }
+    if(mv.tool !== 'cut' && mv.tool !== 'text' && mv.tool !== 'curve' && mv.tool !== 'point' && mv.tool !== 'mid' && !mv.pending.length && !mv.pendRefs.length){
+      const h = mvHitHandle(p);
+      if(h){ mvSetSel(h.shape); mv.drag = { mode:'point', pt:h.pt, shape:h.shape }; mvSyncControls(); mvDraw(); return; }
+      if(mv.tool === 'move'){
+        const b = mvHitBody(p);
+        if(b && multiKey){ mvSetSel(b, true); mv.drag = null; }
+        else if(b){
+          if(!mv.multi.has(b)) mvSetSel(b);
+          mv.drag = { mode:'shape', shapes:[...mv.multi], last:p };
+        } else { if(!multiKey) mvSetSel(null); mv.drag = null; }
+        mvSyncControls(); mvUpdateHint(); mvDraw(); return;
+      }
+    }
+    mv.drag = null;
+  });
+  cv.addEventListener('pointermove', e=>{
+    const p = mvToImg(e); mv.mouse = p;
+    mvUpdateLoupe(e, p);
+    if(mv.down && Math.hypot(e.clientX - mv.down.x, e.clientY - mv.down.y) > 4) mv.down.moved = true;
+    const d = mv.drag;
+    if(d){
+      if(d.mode === 'pan'){ st.scrollLeft = d.sl - (e.clientX - d.sx); st.scrollTop = d.st - (e.clientY - d.sy); return; }
+      if(d.mode === 'pen'){ if(mvDist(d.shape.pts[d.shape.pts.length-1], p) > 1.5/mv.zoom) d.shape.pts.push(p); }
+      else if(d.mode === 'point'){ d.pt.x = p.x; d.pt.y = p.y; if(d.shape.type === 'calib') mvRecalcCalib(); }
+      else if(d.mode === 'shape'){
+        const dx = p.x - d.last.x, dy = p.y - d.last.y; d.last = p;
+        d.shapes.forEach(s=>{ mvTranslate(s, dx, dy); if(s.type === 'calib') mvRecalcCalib(); });
+      }
+      else if(d.mode === 'pivot'){ mv.pivot.x = p.x; mv.pivot.y = p.y; }
+      else if(d.mode === 'presize'){
+        const sh = d.shape, cs = Math.cos(-sh.theta), sn = Math.sin(-sh.theta), dx = p.x - sh.C.x, dy = p.y - sh.C.y;
+        const lx = dx*cs - dy*sn, ly = dx*sn + dy*cs;
+        if(d.hx) sh.sx = Math.max(0.05, Math.abs(lx) / (sh.cw/2));
+        if(d.hy) sh.sy = Math.max(0.05, Math.abs(ly) / (sh.ch/2));
+        if(d.hx && d.hy && ($('mvPcLock').checked || e.shiftKey)){
+          const k = Math.max(sh.sx / d.sx0, sh.sy / d.sy0); sh.sx = d.sx0 * k; sh.sy = d.sy0 * k;
+        } else if(d.hx && !d.hy && $('mvPcLock').checked && e.shiftKey){ sh.sy = d.sy0 * sh.sx / d.sx0; }
+        mvSyncPieceUI();
+      }
+      else if(d.mode === 'zoomrect'){ mv.zoomRect.x1 = p.x; mv.zoomRect.y1 = p.y; }
+      else if(d.mode === 'cropnew'){ mv.cropRect.x1 = p.x; mv.cropRect.y1 = p.y; }
+      else if(d.mode === 'cropc'){ mv.cropRect = { x0:d.fx, y0:d.fy, x1:p.x, y1:p.y }; }
+      else if(d.mode === 'cropmove'){
+        const n = mvCropNorm(), B = mvCropBounds();
+        let dx = p.x - d.last.x, dy = p.y - d.last.y; d.last = p;
+        dx = Math.max(B.x0 - n.x0, Math.min(B.x1 - n.x1, dx)); dy = Math.max(B.y0 - n.y0, Math.min(B.y1 - n.y1, dy));
+        mv.cropRect = { x0:n.x0+dx, y0:n.y0+dy, x1:n.x1+dx, y1:n.y1+dy };
+      }
+      else if(d.mode === 'rot'){
+        const na = Math.atan2(p.y - mv.pivot.y, p.x - mv.pivot.x);
+        let delta = na - mv.rot.phi; while(delta > Math.PI) delta -= 2*Math.PI; while(delta < -Math.PI) delta += 2*Math.PI;
+        mvRotateSel(delta); mv.rot.phi = na; mv.rot.total += delta;
+      }
+      mvDraw();
+    } else if(mv.pending.length) mvDraw();
+  });
+  const endPtr = e=>{
+    const d = mv.drag; mv.drag = null;
+    if(d && d.mode === 'pan'){ cv.style.cursor = 'grab'; return; }
+    if(d && d.mode === 'presize'){ mvDraw(); return; }
+    if(d && d.mode === 'zoomrect'){
+      const zr = mv.zoomRect; mv.zoomRect = null;
+      const st = $('mvStage'), cvv = $('mvCanvas'), W = cvv.width, H = cvv.height;
+      const rw = Math.abs(zr.x1 - zr.x0), rh = Math.abs(zr.y1 - zr.y0);
+      if(mv.down && mv.down.moved && rw * mv.zoom > 12 && rh * mv.zoom > 12){
+        const z = Math.min(16, (st.clientWidth - 24) / rw, (st.clientHeight - 24) / rh);
+        mvViewPush(); mvSetZoom(z);
+        const r = cvv.getBoundingClientRect(), sr = st.getBoundingClientRect();
+        const tx = r.left + ((zr.x0 + zr.x1)/2) / W * r.width, ty = r.top + ((zr.y0 + zr.y1)/2) / H * r.height;
+        st.scrollLeft += tx - (sr.left + sr.width/2); st.scrollTop += ty - (sr.top + sr.height/2);
+      } else {
+        mvZoomAt(zr.out ? mv.zoom / 2 : mv.zoom * 2, zr.cx, zr.cy);
+      }
+      mvSetTool(mv.prevTool && mv.prevTool !== 'zoom' ? mv.prevTool : 'move'); mvDraw(); return;
+    }
+    if(d && String(d.mode).startsWith('crop')){
+      if(mv.cropRect){ const n = mvCropNorm(); if(n.x1 - n.x0 < 6 || n.y1 - n.y0 < 6) mv.cropRect = null; }
+      mvDraw(); return;
+    }
+    if(d && d.mode === 'point' && mv.down && !mv.down.moved && (MV_NEED[mv.tool] || mv.tool === 'curve' || mv.tool === 'mid')){
+      mvSetSel(null); mvSyncControls(); mvClickAt(mvToImg(e)); return;
+    }
+    if(d){ if(d.mode === 'pen' && d.shape.pts.length < 2) d.shape.pts.push({x:d.shape.pts[0].x+0.01, y:d.shape.pts[0].y}); mvDraw(); return; }
+    if(mv.down && !mv.down.moved && e.type === 'pointerup') mvClickAt(mvToImg(e));
+  };
+  cv.addEventListener('pointerup', endPtr);
+  cv.addEventListener('pointercancel', ()=>{ mv.drag = null; });
+  cv.addEventListener('pointerleave', ()=>{ mv.mouse = null; mvUpdateLoupe(null); if(mv.pending.length) mvDraw(); });
+  cv.addEventListener('dblclick', e=>{
+    if(mv.tool === 'curve'){
+      if(mv.pending.length > 2) mv.pending.pop();
+      if(mv.pending.length >= 2) mvFinishCurve();
+      return;
+    }
+    if(mv.tool === 'cut'){
+      if(mv.pending.length > 3) mv.pending.pop();
+      if(mv.pending.length >= 3) mvFinishCut();
+      return;
+    }
+    if(mv.tool !== 'move') return;
+    const pt = mvToImg(e), rr = mvHitRadius();
+    const pointHit = [...mv.shapes].reverse().find(sh => sh.type === 'point' && mvDist(pt, sh.p) <= rr);
+    const b = pointHit || mvHitBody(pt);
+    if(b && b.type === 'point'){
+      const t = prompt(mvT('اسم النقطة:'), b.label || '');
+      if(t !== null){ b.label = t.trim(); mvDraw(); }
+      return;
+    }
+    if(b && b.type === 'text'){
+      const t = prompt(mvT('عدّل النص:'), b.text);
+      if(t !== null){ if(t.trim()) b.text = t.trim(); else mvDeleteShape(b); mvDraw(); }
+    }
+  });
+  const tools = { mvToolLine:'line', mvToolSeg:'seg', mvToolAngle:'angle', mvToolAngle2:'angle2', mvToolLink:'linkangle', mvToolCalib:'calib',
+                  mvToolPen:'pen', mvToolText:'text', mvToolCurve:'curve', mvToolMid:'mid', mvToolPoint:'point', mvToolCrop:'crop', mvToolZoom:'zoom', mvToolCut:'cut', mvToolMove:'move', mvToolRotate:'rotate', mvToolPan:'pan' };
+  Object.entries(tools).forEach(([id,t])=> $(id).onclick = ()=> mvSetTool(t));
+  $('mvUndo').onclick = ()=>{
+    if(mv.pending.length) mv.pending.pop();
+    else if(mv.pendRefs.length) mv.pendRefs.pop();
+    else { const last = mv.shapes.pop(); if(last){ mv.multi.delete(last); if(last === mv.sel) mv.sel = [...mv.multi].pop() || null; if(last.type === 'cropmark') mvUndoCrop(last); } mvRecalcCalib(); }
+    mvSyncControls(); mvUpdateHint(); mvDraw();
+  };
+  $('mvDelSel').onclick = ()=>{ [...mv.multi].forEach(s=> mvDeleteShape(s)); mvSyncControls(); mvUpdateHint(); mvDraw(); };
+  $('mvClear').onclick = ()=>{
+    if(!mv.shapes.length && !mv.pending.length) return;
+    if(!confirm(mvT('مسح كل القياسات والرسومات والقطع المقصوصة؟'))) return;
+    mv.shapes = []; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.mmPerPx = null;
+    mvSyncControls(); mvUpdateHint(); mvDraw();
+  };
+  $('mvColor').oninput = e=>{ mv.color = e.target.value; mv.multi.forEach(s=> s.color = mv.color); mvDraw(); };
+  document.querySelectorAll('.mv-sw').forEach(b=> b.onclick = ()=>{
+    mv.color = b.dataset.c; $('mvColor').value = mv.color; mv.multi.forEach(s=> s.color = mv.color); mvDraw();
+  });
+  $('mvWidth').oninput = e=>{ mv.w = Number(e.target.value); $('mvWidthVal').textContent = mv.w; mv.multi.forEach(s=> s.w = mv.w); mvDraw(); };
+  $('mvRotLeft').onclick = ()=> mvRotateByDeg(-(parseFloat($('mvRotDeg').value) || 0));
+  $('mvRotRight').onclick = ()=> mvRotateByDeg(parseFloat($('mvRotDeg').value) || 0);
+  $('mvPivotCenter').onclick = ()=>{ mvEnsurePivot(true); mvDraw(); };
+  $('mvSelAll').onclick = ()=>{ mv.multi = new Set(mv.shapes.filter(s=>s.type !== 'lineangle' && s.type !== 'cropmark')); mv.sel = [...mv.multi].pop() || null; mv.rot.from = null; mvSyncControls(); mvDraw(); };
+  $('mvCutDone').onclick = mvFinishCut;
+  $('mvZoomIn').onclick = ()=> mvZoomCenter(1.4);
+  $('mvZoomOut').onclick = ()=> mvZoomCenter(1/1.4);
+  $('mvZoomFit').onclick = ()=>{ mvViewPush(); mvSetZoom(mv.fit); const st = $('mvStage'); st.scrollLeft = 0; st.scrollTop = 0; mvDraw(); };
+  $('mvViewBack').onclick = mvViewBack;
+  $('mvLoupeBtn').onclick = ()=>{ mv.loupe = !mv.loupe; $('mvLoupeBtn').classList.toggle('active', mv.loupe); if(!mv.loupe) mvUpdateLoupe(null); };
+  $('mvSave').onclick = ()=>{
+    mvDraw(true);
+    $('mvCanvas').toBlob(blob=>{
+      mvDraw();
+      if(!blob){ showToast(mvT('تعذر حفظ الصورة'), true); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = mvL('قياس-', 'measure-') + new Date().toISOString().slice(0,10) + '.jpg';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    }, 'image/jpeg', 0.92);
+  };
+  $('mvCurveDone').onclick = mvFinishCurve;
+  [['mvPcOp','op'],['mvPcSx','sx'],['mvPcSy','sy']].forEach(([id,w])=> $(id).addEventListener('input', ()=> mvOnPieceInput(w)));
+  ['mvKeyTol','mvKeySoft','mvTintAmt','mvKeyColor','mvTintColor'].forEach(id=> $(id).addEventListener('input', ()=> mvOnPieceInput('rebuild')));
+  ['mvKeyOn','mvKeyMode','mvKeyEdge','mvTintOn'].forEach(id=> $(id).addEventListener('change', ()=> mvOnPieceInput('rebuild')));
+  const mvSetPieceDeg = (fn)=>{ mvSelPieces().forEach(sh=>{ sh.theta = fn(sh.theta * 180 / Math.PI) * Math.PI / 180; }); mvSyncPieceUI(); mvDraw(); };
+  $('mvPcRot').addEventListener('input', ()=> mvSetPieceDeg(()=> Number($('mvPcRot').value)));
+  $('mvPcRotN').addEventListener('input', ()=>{ const v = Number($('mvPcRotN').value); if(isFinite(v)) mvSetPieceDeg(()=> v); });
+  const stepV = ()=> Math.max(0.1, Number($('mvPcRotStep').value) || 5);
+  $('mvPcRotL').onclick = ()=> mvSetPieceDeg(d => d - stepV());
+  $('mvPcRotR').onclick = ()=> mvSetPieceDeg(d => d + stepV());
+  $('mvFlipX').onclick = ()=>{ mvSelPieces().forEach(s=> s.fx = !s.fx); mvDraw(); };
+  $('mvFlipY').onclick = ()=>{ mvSelPieces().forEach(s=> s.fy = !s.fy); mvDraw(); };
+  ['mvAdjB','mvAdjC','mvAdjG','mvAdjS','mvAdjSh'].forEach(id=> $(id).addEventListener('input', mvOnAdjInput));
+  ['mvAdjInv','mvAdjGray','mvAdjAuto'].forEach(id=> $(id).addEventListener('change', mvOnAdjInput));
+  $('mvAdjReset').onclick = mvResetAdj;
+  $('mvCropApply').onclick = mvApplyCrop;
+  $('mvCropCancel').onclick = ()=>{ mv.cropRect = null; mvDraw(); };
+  $('mvCompareBtn').onclick = mvOpenCompare;
+  $('mvCmpBack').onclick = mvCloseCompare;
+  $('mvCmpRefresh').onclick = async ()=>{
+    const a = $('mvCmpSelA').value, b2 = $('mvCmpSelB').value;
+    mv.cmp.cur = mvCmpSnapshot(); await mvCmpFillSelects(a, b2); await mvCmpRender();
+  };
+  $('mvCmpSelA').onchange = mvCmpRender; $('mvCmpSelB').onchange = mvCmpRender;
+  $('mvCmpZoomIn').onclick = ()=>{ mv.cmp.zoom = Math.min(8, mv.cmp.zoom * 1.25); mvCmpLayout(); };
+  $('mvCmpZoomOut').onclick = ()=>{ mv.cmp.zoom = Math.max(0.3, mv.cmp.zoom / 1.25); mvCmpLayout(); };
+  $('mvCmpFit').onclick = ()=>{ mv.cmp.zoom = 1; mvCmpLayout(); };
+  $('mvCmpSave').onclick = mvCmpSave;
+  window.addEventListener('resize', ()=>{ if(mv.cmp.open) mvCmpLayout(); });
+  $('mvScaleUp').onclick = ()=> mvScaleSel(1.1);
+  $('mvScaleDown').onclick = ()=> mvScaleSel(1/1.1);
+  $('mvInsert').onclick = ()=> $('mvFile').click();
+  $('mvInsert2').onclick = ()=> $('mvFile').click();
+  $('mvFile').onchange = async e=>{ const fs = [...e.target.files]; e.target.value = ''; await mvInsertFiles(fs); };
+  $('mvSaveStage').onclick = mvSaveStage;
+  $('mvExportJson').onclick = mvDownloadJson;
+  $('mvImportBtn').onclick = ()=> $('mvJsonFile').click();
+  $('mvJsonFile').onchange = async e=>{ const f = e.target.files[0]; e.target.value = ''; if(f) await mvImportJson(f); };
+  $('mvSideToggle').onclick = ()=> $('mvSide').classList.toggle('open');
+  $('mvLang').onclick = ()=>{
+    mv.lang = mv.lang === 'en' ? 'ar' : 'en';
+    try{ localStorage.setItem('mvLang', mv.lang); }catch(_){}
+    mvApplyLang(); mvDraw();
+  };
+  $('mvClose').onclick = closeMeasureViewer;
+  document.addEventListener('keydown', e=>{
+    if(!$('measureViewer').classList.contains('open')) return;
+    const typing = ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+    if(e.key === 'Escape'){
+      if(mv.tool === 'crop' && mv.cropRect){ mv.cropRect = null; mvDraw(); }
+      else if(mv.tool === 'zoom'){ mvSetTool(mv.prevTool || 'move'); }
+      else if(mv.cmp.open){ mvCloseCompare(); }
+      else if(mv.pending.length || mv.pendRefs.length){ mv.pending = []; mv.pendRefs = []; mvUpdateHint(); mvDraw(); }
+      else if(mv.multi.size){ mvSetSel(null); mvSyncControls(); mvDraw(); }
+      else closeMeasureViewer();
+    }
+    else if(!typing && !e.ctrlKey && !e.metaKey && (e.key === 'z' || e.key === 'Z' || e.key === 'ز') && mv.tool !== 'zoom'){ mvSetTool('zoom'); }
+    else if(!typing && (e.key === '+' || e.key === '=')){ mvZoomCenter(1.4); }
+    else if(!typing && (e.key === '-' || e.key === '_')){ mvZoomCenter(1/1.4); }
+    else if(!typing && e.key === '0'){ $('mvZoomFit').click(); }
+    else if(e.key === 'Enter' && mv.tool === 'cut' && !typing){ mvFinishCut(); }
+    else if(e.key === 'Enter' && mv.tool === 'crop' && !typing){ mvApplyCrop(); }
+    else if(e.key === 'Enter' && mv.tool === 'curve' && !typing){ mvFinishCurve(); }
+    else if((e.key === 'Delete' || e.key === 'Backspace') && mv.multi.size && !typing){ $('mvDelSel').click(); }
+    else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing){ $('mvUndo').click(); }
+  });
+  st.addEventListener('wheel', e=>{
+    if(!e.ctrlKey) return;
+    e.preventDefault();
+    const now = Date.now(), push = now - mv.lastWheel > 700; mv.lastWheel = now;
+    mvZoomAt(mv.zoom * (e.deltaY < 0 ? 1.15 : 1/1.15), e.clientX, e.clientY, push);
+  }, {passive:false});
+}
+// ===== استوديو الرسم: صور مدرجة + حفظ المراحل =====
+function mvUpdateEmpty(){
+  const e = $('mvEmpty'); if(e) e.style.display = (mv.baseBlank && !mv.shapes.length && !mv.cmp.open) ? 'flex' : 'none';
+}
+function mvLoadImg(url){
+  return new Promise((res, rej)=>{ const im = new Image(); im.onload = ()=>res(im); im.onerror = ()=>rej(new Error('img')); im.src = url; });
+}
+function mvBlankUrl(){
+  const c = document.createElement('canvas'); c.width = 1600; c.height = 1000;
+  const x = c.getContext('2d'); x.fillStyle = '#0e1316'; x.fillRect(0, 0, c.width, c.height);
+  x.strokeStyle = 'rgba(255,255,255,.05)'; x.lineWidth = 1;
+  for(let i = 100; i < c.width; i += 100){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,c.height); x.stroke(); }
+  for(let j = 100; j < c.height; j += 100){ x.beginPath(); x.moveTo(0,j); x.lineTo(c.width,j); x.stroke(); }
+  return c.toDataURL('image/png');
+}
+async function mvLoadBase(url, blank){
+  const im = await mvLoadImg(url);
+  mv.img = im; mv.baseUrl = url; mv.baseBlank = !!blank; mv.adj = mvAdjDefault(); mv.adjCanvas = null;
+  const cv = $('mvCanvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+}
+function mvRefit(){
+  if(!mv.img) return;
+  const st = $('mvStage');
+  mv.fit = Math.max(0.05, Math.min((st.clientWidth - 24) / mv.img.naturalWidth, (st.clientHeight - 24) / mv.img.naturalHeight));
+  mvSetZoom(mv.fit);
+}
+async function mvInsertFiles(files){
+  for(const f of files){
+    if(!f.type.startsWith('image/')) continue;
+    let url;
+    try{ url = await new Promise((res, rej)=>{ const r = new FileReader(); r.onload = ()=>res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
+    catch(_){ showToast(mvT('تعذر قراءة الصورة'), true); continue; }
+    let im; try{ im = await mvLoadImg(url); } catch(_){ showToast(mvT('ملف الصورة غير صالح'), true); continue; }
+    if(mv.baseBlank && !mv.shapes.some(s=>s.type === 'piece')){
+      mv.img = im; mv.baseUrl = url; mv.baseBlank = false; mv.adj = mvAdjDefault(); mv.adjCanvas = null;
+      const cv = $('mvCanvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+      mvRefit(); mvSyncAdjUI();
+    } else {
+      const W = mv.img.naturalWidth, H = mv.img.naturalHeight;
+      const k = Math.min(1, 0.55*W/im.naturalWidth, 0.55*H/im.naturalHeight);
+      const cw = Math.max(2, Math.round(im.naturalWidth*k)), ch = Math.max(2, Math.round(im.naturalHeight*k));
+      const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+      c.getContext('2d').drawImage(im, 0, 0, cw, ch);
+      const n = mv.shapes.filter(s=>s.type === 'piece').length * 30;
+      const sc0 = document.createElement('canvas'); sc0.width = cw; sc0.height = ch; sc0.getContext('2d').drawImage(c, 0, 0);
+      const sh = mvNewShape({ type:'piece', cvs:c, src:sc0, cw, ch, lpoly:[{x:-cw/2,y:-ch/2},{x:cw/2,y:-ch/2},{x:cw/2,y:ch/2},{x:-cw/2,y:ch/2}],
+                              C:{x:W/2 + n, y:H/2 + n}, theta:0, sx:1, sy:1, op:1, noOutline:true, hole:null });
+      mvSetTool('move'); mvSetSel(sh);
+    }
+    mvSyncControls(); mvUpdateHint(); mvDraw();
+  }
+}
+function mvScaleSel(f){
+  let n = 0;
+  mv.multi.forEach(s=>{ if(s.type === 'piece'){ s.sx = Math.max(0.05, Math.min(20, (s.sx || 1) * f)); s.sy = Math.max(0.05, Math.min(20, (s.sy || 1) * f)); n++; } });
+  if(!n) showToast(mvT('حدد قطعة مقصوصة أو صورة مدرجة الأول (بأداة التحريك)'), true);
+  mvSyncPieceUI(); mvDraw();
+}
+// ----- التسلسل (حفظ/فتح) -----
+function mvSerialize(){
+  const list = mv.shapes.filter(s => s.type !== 'cropmark');
+  const idx = new Map(list.map((s,i)=>[s,i]));
+  const shapes = list.map(s=>{
+    if(s.type === 'piece') return { type:'piece', color:s.color, w:s.w, cw:s.cw, ch:s.ch, lpoly:s.lpoly, C:s.C, theta:s.theta, sx:s.sx || 1, sy:s.sy || 1, fx:!!s.fx, fy:!!s.fy, op:s.op == null ? 1 : s.op, key:s.key || null, tint:s.tint || null, noOutline:!!s.noOutline, hole:s.hole, png:s.cvs.toDataURL('image/png'), adj:s.adj || null,
+      srcPng: (s.src && (!mvAdjIsDefault(s.adj) || (s.key && s.key.on) || (s.tint && s.tint.on))) ? s.src.toDataURL('image/png') : null };
+    if(s.type === 'mid') return { type:'mid', color:s.color, w:s.w, ref:{si:idx.get(s.ref.s), i:s.ref.i} };
+    if(s.type === 'lineangle') return { type:'lineangle', color:s.color, w:s.w, r1:{si:idx.get(s.r1.s), i:s.r1.i}, r2:{si:idx.get(s.r2.s), i:s.r2.i} };
+    return JSON.parse(JSON.stringify(s));
+  });
+  return { v:2, base:mv.baseUrl, blank:mv.baseBlank, adj:mv.adj, shapes };
+}
+async function mvDeserialize(state){
+  await mvLoadBase(state.base, state.blank);
+  const out = [];
+  for(const s of state.shapes){
+    if(s.type === 'piece'){
+      const im = await mvLoadImg(s.png);
+      const c = document.createElement('canvas'); c.width = s.cw; c.height = s.ch; c.getContext('2d').drawImage(im, 0, 0);
+      const pc = { type:'piece', color:s.color, w:s.w, cw:s.cw, ch:s.ch, lpoly:s.lpoly, C:s.C, theta:s.theta, sx:(s.sx != null ? s.sx : (s.sc || 1)), sy:(s.sy != null ? s.sy : (s.sc || 1)), fx:!!s.fx, fy:!!s.fy, op:(s.op == null ? 1 : s.op), key:s.key || undefined, tint:s.tint || undefined, noOutline:!!s.noOutline, hole:s.hole, cvs:c, adj:s.adj || undefined };
+      if(s.srcPng){ const sim = await mvLoadImg(s.srcPng); const sc2 = document.createElement('canvas'); sc2.width = s.cw; sc2.height = s.ch; sc2.getContext('2d').drawImage(sim, 0, 0); pc.src = sc2; }
+      out.push(pc);
+    } else out.push(s);
+  }
+  out.forEach(s=>{ if(s.type === 'mid') s.ref = { s:out[s.ref.si], i:s.ref.i }; });
+  out.forEach(s=>{ if(s.type === 'lineangle'){ s.r1 = { s:out[s.r1.si], i:s.r1.i }; s.r2 = { s:out[s.r2.si], i:s.r2.i }; } });
+  mv.adj = state.adj ? { ...mvAdjDefault(), ...state.adj } : mvAdjDefault(); mvReprocessBase();
+  mv.shapes = out; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.pivot = null; mvRecalcCalib();
+  mvRefit(); mvSetTool('move'); mvDraw();
+}
+// ----- تعديل الألوان والحدّة -----
+function mvAdjDefault(){ return { b:0, c:0, g:100, s:0, sh:0, inv:false, gray:false, auto:false }; }
+function mvAdjIsDefault(a){ return !a || (a.b === 0 && a.c === 0 && a.g === 100 && a.s === 0 && a.sh === 0 && !a.inv && !a.gray && !a.auto); }
+mv.adj = mvAdjDefault();
+function mvProcess(src, w, h, a){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(src, 0, 0, w, h);
+  if(mvAdjIsDefault(a)) return c;
+  const id = x.getImageData(0, 0, w, h), d = id.data, n = w*h;
+  let lo = 0, hi = 255;
+  if(a.auto){
+    const hist = new Uint32Array(256);
+    for(let i = 0; i < n; i++){ const k = i*4; if(d[k+3] > 0) hist[(d[k]*0.299 + d[k+1]*0.587 + d[k+2]*0.114) | 0]++; }
+    let tot = 0; for(let v = 0; v < 256; v++) tot += hist[v];
+    let acc = 0; for(let v = 0; v < 256; v++){ acc += hist[v]; if(acc >= tot*0.01){ lo = v; break; } }
+    acc = 0; for(let v = 0; v < 256; v++){ acc += hist[v]; if(acc >= tot*0.99){ hi = v; break; } }
+    if(hi - lo < 8){ lo = 0; hi = 255; }
+  }
+  const lut = new Uint8ClampedArray(256), cf = a.c >= 0 ? 1 + a.c/50 : 1 + a.c/100, gm = 1 / (a.g/100);
+  for(let v = 0; v < 256; v++){
+    let t = a.auto ? (v - lo) / (hi - lo) : v/255;
+    t = Math.min(1, Math.max(0, t)); t = Math.pow(t, gm);
+    t = (t - 0.5)*cf + 0.5 + a.b/200;
+    if(a.inv) t = 1 - t;
+    lut[v] = Math.round(Math.min(1, Math.max(0, t))*255);
+  }
+  const sat = a.gray ? 0 : 1 + a.s/100, doSat = a.gray || a.s !== 0;
+  for(let i = 0; i < n; i++){
+    const k = i*4; let R = lut[d[k]], G = lut[d[k+1]], B = lut[d[k+2]];
+    if(doSat){ const l = 0.299*R + 0.587*G + 0.114*B; R = l + (R-l)*sat; G = l + (G-l)*sat; B = l + (B-l)*sat; }
+    d[k] = R; d[k+1] = G; d[k+2] = B;
+  }
+  if(a.sh > 0){
+    const amt = a.sh/100*1.6, cp = new Uint8ClampedArray(d);
+    for(let y = 1; y < h-1; y++){
+      for(let xx = 1; xx < w-1; xx++){
+        const k = (y*w + xx)*4;
+        for(let ch = 0; ch < 3; ch++){
+          const j = k + ch;
+          const bl = (cp[j-4-w*4] + cp[j-w*4] + cp[j+4-w*4] + cp[j-4] + cp[j] + cp[j+4] + cp[j-4+w*4] + cp[j+w*4] + cp[j+4+w*4]) / 9;
+          d[j] = cp[j] + amt*(cp[j] - bl);
+        }
+      }
+    }
+  }
+  x.putImageData(id, 0, 0);
+  return c;
+}
+function mvBaseSource(){ return mv.adjCanvas || mv.img; }
+function mvReprocessBase(){
+  if(!mv.img) return;
+  mv.adjCanvas = mvAdjIsDefault(mv.adj) ? null : mvProcess(mv.img, mv.img.naturalWidth, mv.img.naturalHeight, mv.adj);
+}
+function mvReprocessPiece(sh){ mvRebuildPiece(sh); }
+function mvHexRgb(h){ const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if(!m) return [255,255,255]; const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mvKeyCanvas(src, k){
+  const w = src.width, h = src.height, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(src, 0, 0);
+  const id = x.getImageData(0, 0, w, h), d = id.data;
+  let bg = null;
+  if(k.mode === 'white') bg = [255,255,255]; else if(k.mode === 'black') bg = [0,0,0]; else if(k.mode === 'custom') bg = mvHexRgb(k.color);
+  else {
+    let rr = 0, gg = 0, bb = 0, n = 0;
+    [[0,0],[w-5,0],[0,h-5],[w-5,h-5]].forEach(([px,py])=>{
+      for(let yy = Math.max(0,py); yy < Math.min(h,py+5); yy++) for(let xx = Math.max(0,px); xx < Math.min(w,px+5); xx++){
+        const i = (yy*w + xx)*4; if(d[i+3] > 200){ rr += d[i]; gg += d[i+1]; bb += d[i+2]; n++; }
+      }
+    });
+    if(n > 0) bg = [rr/n, gg/n, bb/n];
+  }
+  const Dt = k.tol * 3, soft = Math.max(1, k.soft * 3);
+  const dist = i => bg ? Math.hypot(d[i]-bg[0], d[i+1]-bg[1], d[i+2]-bg[2]) : 1e9;
+  if(k.edge !== false){
+    const mask = new Uint8Array(w*h), stack = [];
+    const push = p => { if(!mask[p]){ const i = p*4; if(d[i+3] < 8 || dist(i) <= Dt){ mask[p] = 1; stack.push(p); } } };
+    for(let xx = 0; xx < w; xx++){ push(xx); push((h-1)*w + xx); }
+    for(let yy = 0; yy < h; yy++){ push(yy*w); push(yy*w + w - 1); }
+    while(stack.length){
+      const p = stack.pop(), xx = p % w, yy = (p / w) | 0;
+      if(xx > 0) push(p-1); if(xx < w-1) push(p+1); if(yy > 0) push(p-w); if(yy < h-1) push(p+w);
+    }
+    for(let p = 0; p < w*h; p++){
+      const i = p*4;
+      if(mask[p]){ d[i+3] = 0; continue; }
+      if(!bg) continue;
+      const xx = p % w, yy = (p / w) | 0;
+      const nb = (xx > 0 && mask[p-1]) || (xx < w-1 && mask[p+1]) || (yy > 0 && mask[p-w]) || (yy < h-1 && mask[p+w]);
+      if(nb){ const dd = dist(i); if(dd < Dt + soft) d[i+3] = Math.min(d[i+3], 255 * (dd - Dt) / soft); }
+    }
+  } else {
+    for(let p = 0; p < w*h; p++){
+      const i = p*4, dd = dist(i);
+      if(dd <= Dt) d[i+3] = 0; else if(dd < Dt + soft) d[i+3] = Math.min(d[i+3], 255 * (dd - Dt) / soft);
+    }
+  }
+  x.putImageData(id, 0, 0);
+  return c;
+}
+function mvTintCanvas(src, t){
+  const w = src.width, h = src.height, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(src, 0, 0);
+  const id = x.getImageData(0, 0, w, h), d = id.data, col = mvHexRgb(t.color), amt = Math.max(0, Math.min(1, t.amt / 100));
+  for(let i = 0; i < d.length; i += 4){
+    if(d[i+3] === 0) continue;
+    const l = (0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]) / 255, f = 0.35 + 0.65*l;
+    d[i] = d[i]*(1-amt) + col[0]*f*amt; d[i+1] = d[i+1]*(1-amt) + col[1]*f*amt; d[i+2] = d[i+2]*(1-amt) + col[2]*f*amt;
+  }
+  x.putImageData(id, 0, 0);
+  return c;
+}
+function mvRebuildPiece(sh){
+  if(!sh.src){ const c0 = document.createElement('canvas'); c0.width = sh.cw; c0.height = sh.ch; c0.getContext('2d').drawImage(sh.cvs, 0, 0); sh.src = c0; }
+  let c = mvProcess(sh.src, sh.cw, sh.ch, sh.adj || mvAdjDefault());
+  if(sh.key && sh.key.on) c = mvKeyCanvas(c, sh.key);
+  if(sh.tint && sh.tint.on) c = mvTintCanvas(c, sh.tint);
+  sh.cvs = c; sh._al = null;
+}
+// ----- لوحة الصورة المدرجة / القطعة -----
+function mvSelPieces(){ return [...mv.multi].filter(s => s.type === 'piece'); }
+function mvShowPieceVals(){
+  $('mvPcOpV').textContent = $('mvPcOp').value + '%'; $('mvPcSxV').textContent = $('mvPcSx').value + '%'; $('mvPcSyV').textContent = $('mvPcSy').value + '%';
+  $('mvKeyTolV').textContent = $('mvKeyTol').value; $('mvKeySoftV').textContent = $('mvKeySoft').value; $('mvTintAmtV').textContent = $('mvTintAmt').value + '%';
+}
+function mvSyncPieceUI(){
+  const g = $('mvPieceGrp'); if(!g) return;
+  const ps = mvSelPieces();
+  g.style.display = ps.length ? 'block' : 'none';
+  if(!ps.length) return;
+  const sh = ps[0], k = sh.key || {}, t = sh.tint || {};
+  { let dg = sh.theta * 180 / Math.PI; dg = ((dg + 180) % 360 + 360) % 360 - 180; $('mvPcRot').value = dg; $('mvPcRotN').value = Math.round(dg * 10) / 10; }
+  $('mvPcOp').value = Math.round((sh.op == null ? 1 : sh.op) * 100);
+  $('mvPcSx').value = Math.round((sh.sx || 1) * 100); $('mvPcSy').value = Math.round((sh.sy || 1) * 100);
+  $('mvKeyOn').checked = !!k.on; $('mvKeyMode').value = k.mode || 'auto'; $('mvKeyColor').value = k.color || '#ffffff';
+  $('mvKeyTol').value = k.tol == null ? 25 : k.tol; $('mvKeySoft').value = k.soft == null ? 10 : k.soft; $('mvKeyEdge').checked = k.edge !== false;
+  $('mvTintOn').checked = !!t.on; $('mvTintColor').value = t.color || '#ffd24d'; $('mvTintAmt').value = t.amt == null ? 100 : t.amt;
+  mvShowPieceVals();
+}
+let mvPcQueued = false;
+function mvOnPieceInput(which){
+  const ps = mvSelPieces(); if(!ps.length) return;
+  const op = Number($('mvPcOp').value) / 100, sxv = Number($('mvPcSx').value) / 100, syv = Number($('mvPcSy').value) / 100;
+  ps.forEach(sh=>{
+    sh.op = op;
+    if(which === 'sx'){ const old = sh.sx || 1; sh.sx = sxv; if($('mvPcLock').checked) sh.sy = (sh.sy || 1) * sxv / old; }
+    else if(which === 'sy'){ const old = sh.sy || 1; sh.sy = syv; if($('mvPcLock').checked) sh.sx = (sh.sx || 1) * syv / old; }
+    if(which === 'rebuild'){
+      sh.key = { on:$('mvKeyOn').checked, mode:$('mvKeyMode').value, color:$('mvKeyColor').value, tol:Number($('mvKeyTol').value), soft:Number($('mvKeySoft').value), edge:$('mvKeyEdge').checked };
+      sh.tint = { on:$('mvTintOn').checked, color:$('mvTintColor').value, amt:Number($('mvTintAmt').value) };
+    }
+  });
+  if(which === 'sx' || which === 'sy'){ $('mvPcSx').value = Math.round((ps[0].sx || 1) * 100); $('mvPcSy').value = Math.round((ps[0].sy || 1) * 100); }
+  mvShowPieceVals();
+  if(which !== 'rebuild'){ mvDraw(); return; }
+  if(mvPcQueued) return; mvPcQueued = true;
+  requestAnimationFrame(()=>{ mvPcQueued = false; mvSelPieces().forEach(mvRebuildPiece); mvDraw(); });
+}
+function mvAdjTargets(){
+  const ps = [...mv.multi].filter(s => s.type === 'piece');
+  return ps.length ? { kind:'piece', list:ps } : { kind:'base' };
+}
+function mvReadAdjUI(){
+  return { b:Number($('mvAdjB').value), c:Number($('mvAdjC').value), g:Number($('mvAdjG').value), s:Number($('mvAdjS').value), sh:Number($('mvAdjSh').value),
+           inv:$('mvAdjInv').checked, gray:$('mvAdjGray').checked, auto:$('mvAdjAuto').checked };
+}
+function mvShowAdjValues(a){
+  $('mvAdjBv').textContent = a.b; $('mvAdjCv').textContent = a.c; $('mvAdjGv').textContent = (a.g/100).toFixed(2); $('mvAdjSv').textContent = a.s; $('mvAdjShv').textContent = a.sh;
+}
+let mvAdjQueued = false;
+function mvOnAdjInput(){
+  const a = mvReadAdjUI(), t = mvAdjTargets();
+  if(t.kind === 'base') mv.adj = a; else t.list.forEach(sh => sh.adj = { ...a });
+  mvShowAdjValues(a);
+  if(mvAdjQueued) return; mvAdjQueued = true;
+  requestAnimationFrame(()=>{
+    mvAdjQueued = false;
+    const tt = mvAdjTargets();
+    if(tt.kind === 'base') mvReprocessBase(); else tt.list.forEach(mvReprocessPiece);
+    mvDraw();
+  });
+}
+function mvSyncAdjUI(){
+  if(!$('mvAdjB')) return;
+  const t = mvAdjTargets();
+  const a = t.kind === 'base' ? (mv.adj || mvAdjDefault()) : (t.list[0].adj || mvAdjDefault());
+  $('mvAdjB').value = a.b; $('mvAdjC').value = a.c; $('mvAdjG').value = a.g; $('mvAdjS').value = a.s; $('mvAdjSh').value = a.sh;
+  $('mvAdjInv').checked = !!a.inv; $('mvAdjGray').checked = !!a.gray; $('mvAdjAuto').checked = !!a.auto;
+  mvShowAdjValues(a);
+  $('mvAdjTarget').textContent = t.kind === 'base' ? mvT('يتطبق على: الصورة الأساسية') : mvT('يتطبق على: القطع المحددة');
+}
+function mvResetAdj(){
+  const t = mvAdjTargets();
+  if(t.kind === 'base'){ mv.adj = mvAdjDefault(); mvReprocessBase(); }
+  else t.list.forEach(sh => { sh.adj = mvAdjDefault(); mvReprocessPiece(sh); });
+  mvSyncAdjUI(); mvDraw();
+}
+// ----- الكروب -----
+function mvCropBounds(){
+  if(mv.cropTarget && mv.shapes.includes(mv.cropTarget)){
+    const wp = mvPieceWorldPoly(mv.cropTarget), xs = wp.map(q=>q.x), ys = wp.map(q=>q.y);
+    return { x0:Math.min(...xs), y0:Math.min(...ys), x1:Math.max(...xs), y1:Math.max(...ys) };
+  }
+  return { x0:0, y0:0, x1:mv.img.naturalWidth, y1:mv.img.naturalHeight };
+}
+function mvCropNorm(){
+  const r = mv.cropRect, B = mvCropBounds();
+  return { x0:Math.max(B.x0, Math.min(r.x0, r.x1)), y0:Math.max(B.y0, Math.min(r.y0, r.y1)), x1:Math.min(B.x1, Math.max(r.x0, r.x1)), y1:Math.min(B.y1, Math.max(r.y0, r.y1)) };
+}
+function mvPieceCrop(sh, n){
+  const cs = Math.cos(-sh.theta), sn = Math.sin(-sh.theta), sx = sh.sx || 1, sy = sh.sy || 1;
+  const toLocal = q => { const dx = q.x - sh.C.x, dy = q.y - sh.C.y; let lx = (dx*cs - dy*sn) / sx, ly = (dx*sn + dy*cs) / sy; if(sh.fx) lx = -lx; if(sh.fy) ly = -ly; return { x: lx + sh.cw/2, y: ly + sh.ch/2 }; };
+  const quad = [{x:n.x0,y:n.y0},{x:n.x1,y:n.y0},{x:n.x1,y:n.y1},{x:n.x0,y:n.y1}].map(toLocal);
+  const bx0 = Math.max(0, Math.floor(Math.min(...quad.map(q=>q.x)))), by0 = Math.max(0, Math.floor(Math.min(...quad.map(q=>q.y))));
+  const bx1 = Math.min(sh.cw, Math.ceil(Math.max(...quad.map(q=>q.x)))), by1 = Math.min(sh.ch, Math.ceil(Math.max(...quad.map(q=>q.y))));
+  const w = bx1 - bx0, h = by1 - by0; if(w < 4 || h < 4) return false;
+  const base = sh.src || sh.cvs, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.save(); x.beginPath(); quad.forEach((q,i)=> i ? x.lineTo(q.x - bx0, q.y - by0) : x.moveTo(q.x - bx0, q.y - by0)); x.closePath(); x.clip();
+  x.drawImage(base, -bx0, -by0); x.restore();
+  const fxs = sh.fx ? -1 : 1, fys = sh.fy ? -1 : 1, lcx = (bx0 + bx1)/2 - sh.cw/2, lcy = (by0 + by1)/2 - sh.ch/2;
+  const X = lcx * sx * fxs, Y = lcy * sy * fys, ct = Math.cos(sh.theta), st = Math.sin(sh.theta);
+  mvNewShape({ type:'cropmark', piece:sh, prev:{ src:sh.src, cvs:sh.cvs, cw:sh.cw, ch:sh.ch, lpoly:sh.lpoly, C:{x:sh.C.x, y:sh.C.y} } });
+  sh.src = c; sh.cw = w; sh.ch = h; sh.lpoly = [{x:-w/2,y:-h/2},{x:w/2,y:-h/2},{x:w/2,y:h/2},{x:-w/2,y:h/2}];
+  sh.C = { x: sh.C.x + X*ct - Y*st, y: sh.C.y + X*st + Y*ct };
+  mvRebuildPiece(sh);
+  return true;
+}
+function mvShiftAll(dx, dy){
+  mv.shapes.forEach(s=>{
+    if(s.type === 'piece'){ s.C.x += dx; s.C.y += dy; if(s.hole) s.hole.forEach(q=>{ q.x += dx; q.y += dy; }); }
+    else mvPoints(s).forEach(pt=>{ pt.x += dx; pt.y += dy; });
+  });
+  if(mv.pivot){ mv.pivot.x += dx; mv.pivot.y += dy; }
+}
+async function mvApplyCrop(){
+  if(!mv.cropRect){ showToast(mvT('منطقة الكروب صغيرة جدًا'), true); return; }
+  if(mv.cropTarget && mv.shapes.includes(mv.cropTarget)){
+    const n0 = mvCropNorm();
+    if(n0.x1 - n0.x0 < 4 || n0.y1 - n0.y0 < 4 || !mvPieceCrop(mv.cropTarget, n0)){ showToast(mvT('منطقة الكروب صغيرة جدًا'), true); return; }
+    mv.cropRect = null; mvSetTool('move'); mvSyncPieceUI(); mvDraw();
+    showToast(mvT('تم الكروب (تقدر تتراجع بزر ↩ تراجع)')); return;
+  }
+  const n = mvCropNorm(), x = Math.round(n.x0), y = Math.round(n.y0), w = Math.round(n.x1 - n.x0), h = Math.round(n.y1 - n.y0);
+  if(w < 8 || h < 8){ showToast(mvT('منطقة الكروب صغيرة جدًا'), true); return; }
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(mv.img, -x, -y);
+  const url = c.toDataURL('image/png');
+  let im; try{ im = await mvLoadImg(url); } catch(_){ return; }
+  mvNewShape({ type:'cropmark', prevImg:mv.img, prevUrl:mv.baseUrl, dx:x, dy:y });
+  mv.img = im; mv.baseUrl = url; mv.baseBlank = false;
+  const cv = $('mvCanvas'); cv.width = w; cv.height = h;
+  mvShiftAll(-x, -y); mvReprocessBase(); mv.cropRect = null;
+  mvSetTool('move'); mvRefit(); mvDraw();
+  showToast(mvT('تم الكروب (تقدر تتراجع بزر ↩ تراجع)'));
+}
+function mvUndoCrop(mark){
+  if(mark.piece){ const sh = mark.piece; Object.assign(sh, mark.prev); sh._al = null; mvRebuildPiece(sh); mvDraw(); return; }
+  mv.img = mark.prevImg; mv.baseUrl = mark.prevUrl;
+  const cv = $('mvCanvas'); cv.width = mv.img.naturalWidth; cv.height = mv.img.naturalHeight;
+  mvShiftAll(mark.dx, mark.dy); mvReprocessBase(); mvRefit();
+}
+// ----- المقارنة (صورة واحدة مدموجة) -----
+function mvCmpSnapshot(){
+  if(!mv.img) return null;
+  mvDraw(true); const url = $('mvCanvas').toDataURL('image/jpeg', 0.9); mvDraw(); return url;
+}
+async function mvCmpFillSelects(keepA, keepB){
+  let list = [];
+  try{ list = (await mvIdbOp('readonly', s=>s.getAll())) || []; } catch(_){}
+  list.sort((a,b)=> b.ts - a.ts); mv.cmp.stages = list;
+  const opts = `<option value="cur">${mvT('الرسمة الحالية')}</option>` + list.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
+  $('mvCmpSelA').innerHTML = opts; $('mvCmpSelB').innerHTML = opts;
+  $('mvCmpSelA').value = keepA || (list[0] ? String(list[0].id) : 'cur');
+  $('mvCmpSelB').value = keepB || 'cur';
+}
+function mvCmpUrl(v){
+  if(v === 'cur') return mv.cmp.cur;
+  const rec = mv.cmp.stages.find(x => String(x.id) === String(v));
+  return rec ? rec.image : null;
+}
+function mvCmpName(v){
+  return v === 'cur' ? mvT('الرسمة الحالية') : ((mv.cmp.stages.find(r => String(r.id) === String(v)) || {}).name || '');
+}
+async function mvCmpBuild(){
+  const ua = mvCmpUrl($('mvCmpSelA').value), ub = mvCmpUrl($('mvCmpSelB').value);
+  if(!ua || !ub) return null;
+  const [ia, ib] = await Promise.all([mvLoadImg(ua), mvLoadImg(ub)]);
+  const H = Math.min(1400, Math.max(ia.naturalHeight, ib.naturalHeight)), wa = Math.round(ia.naturalWidth * H / ia.naturalHeight), wb = Math.round(ib.naturalWidth * H / ib.naturalHeight);
+  const T = 48, gap = 14, c = document.createElement('canvas'); c.width = wa + wb + gap; c.height = H + T;
+  const x = c.getContext('2d'); x.fillStyle = '#0f1412'; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(ia, 0, T, wa, H); x.drawImage(ib, wa + gap, T, wb, H);
+  x.fillStyle = '#ffffff'; x.fillRect(wa + gap/2 - 1, T, 2, H);
+  x.fillStyle = '#fff'; x.font = 'bold 24px sans-serif'; x.textBaseline = 'middle'; x.textAlign = 'center';
+  x.fillText(mvCmpName($('mvCmpSelA').value), wa/2, T/2); x.fillText(mvCmpName($('mvCmpSelB').value), wa + gap + wb/2, T/2);
+  return c;
+}
+function mvCmpLayout(){
+  const c = mv.cmp.canvas, view = $('mvCmpView'), el = $('mvCmpCanvas');
+  if(!c) return;
+  const fit = Math.min((view.clientWidth - 10) / c.width, (view.clientHeight - 10) / c.height);
+  el.style.width = (c.width * fit * mv.cmp.zoom) + 'px'; el.style.height = (c.height * fit * mv.cmp.zoom) + 'px';
+}
+async function mvCmpRender(){
+  const c = await mvCmpBuild(), el = $('mvCmpCanvas');
+  mv.cmp.canvas = c;
+  if(!c){ el.width = 2; el.height = 2; el.style.width = '0px'; el.style.height = '0px'; return; }
+  el.width = c.width; el.height = c.height; el.getContext('2d').drawImage(c, 0, 0);
+  mvCmpLayout();
+}
+async function mvOpenCompare(){
+  if(!mv.img) return;
+  mv.cmp.cur = mvCmpSnapshot(); mv.cmp.zoom = 1;
+  await mvCmpFillSelects();
+  mv.cmp.open = true;
+  $('mvCompare').style.display = 'flex'; $('mvEmpty').style.display = 'none';
+  $('mvHint').textContent = mvT('الرسمتين ظاهرين كصورة واحدة — اختار من القوائم، والتكبير للصورة كلها، وتقدر تحفظها كصورة واحدة');
+  if(!mv.cmp.stages.length) showToast(mvT('احفظ مرحلة واحدة على الأقل من «💾 حفظ المرحلة الحالية» عشان تقارن'), true);
+  await mvCmpRender();
+}
+function mvCloseCompare(){
+  mv.cmp.open = false; $('mvCompare').style.display = 'none'; mvUpdateEmpty(); mvUpdateHint();
+}
+async function mvCmpSave(){
+  const c = mv.cmp.canvas || await mvCmpBuild();
+  if(!c) return;
+  c.toBlob(blob=>{
+    if(!blob){ showToast(mvT('تعذر حفظ الصورة'), true); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = mvL('مقارنة-', 'compare-') + new Date().toISOString().slice(0,10) + '.jpg';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }, 'image/jpeg', 0.92);
+}
+
+// ----- IndexedDB للمراحل -----
+function mvIdb(){
+  return new Promise((res, rej)=>{
+    if(!window.indexedDB){ rej(new Error('no idb')); return; }
+    const r = indexedDB.open('clinicDrawStudio', 1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore('stages', { keyPath:'id' });
+    r.onsuccess = ()=> res(r.result);
+    r.onerror = ()=> rej(r.error);
+  });
+}
+async function mvIdbOp(mode, fn){
+  const db = await mvIdb();
+  return new Promise((res, rej)=>{
+    const tx = db.transaction('stages', mode); const store = tx.objectStore('stages');
+    const req = fn(store);
+    tx.oncomplete = ()=>{ db.close(); res(req && req.result); };
+    tx.onerror = ()=>{ db.close(); rej(tx.error); };
+    tx.onabort = ()=>{ db.close(); rej(tx.error); };
+  });
+}
+async function mvRenderStages(){
+  const box = $('mvStages'); if(!box) return;
+  let list = [];
+  try{ list = (await mvIdbOp('readonly', s=>s.getAll())) || []; }
+  catch(_){ box.innerHTML = '<div class="mv-lbl">' + mvT('التخزين غير متاح في المتصفح ده') + '</div>'; return; }
+  list.sort((a,b)=> b.ts - a.ts);
+  if(!list.length){ box.innerHTML = '<div class="mv-lbl">' + mvT('لسه مفيش مراحل محفوظة') + '</div>'; return; }
+  box.innerHTML = list.map(r=>`
+    <div class="mv-stg" data-id="${r.id}">
+      <img src="${r.thumb}" alt="">
+      <div class="mv-stg-meta"><b>${escapeHtml(r.name)}</b><span>${new Date(r.ts).toLocaleString(mvL('ar-EG','en-GB'), {dateStyle:'short', timeStyle:'short'})}</span></div>
+      <div class="mv-stg-btns"><button data-a="open">${mvT('فتح')}</button><button data-a="png" title="${mvT('تنزيل صورة')}">⬇</button><button data-a="del" title="${mvT('حذف')}">🗑</button></div>
+    </div>`).join('');
+  box.querySelectorAll('.mv-stg').forEach(el=>{
+    const rec = list.find(x => String(x.id) === el.dataset.id);
+    el.querySelector('[data-a="open"]').onclick = async ()=>{
+      if(mv.shapes.length && !confirm(mvT('فتح المرحلة هيستبدل الشغل الحالي (احفظه الأول لو محتاجه). تكمل؟'))) return;
+      try{ await mvDeserialize(rec.state); mvUpdateHint(); showToast(mvT('تم فتح المرحلة: ') + rec.name); }
+      catch(_){ showToast(mvT('تعذر فتح المرحلة'), true); }
+    };
+    el.querySelector('[data-a="png"]').onclick = ()=>{
+      const a = document.createElement('a'); a.href = rec.image; a.download = rec.name + '.jpg'; document.body.appendChild(a); a.click(); a.remove();
+    };
+    el.querySelector('[data-a="del"]').onclick = async ()=>{
+      if(!confirm(mvL('حذف المرحلة "' + rec.name + '"؟', 'Delete stage "' + rec.name + '"?'))) return;
+      try{ await mvIdbOp('readwrite', s=>s.delete(rec.id)); } catch(_){}
+      mvRenderStages();
+    };
+  });
+}
+async function mvSaveStage(){
+  if(!mv.img) return;
+  const now = new Date();
+  const def = mvL('مرحلة ', 'Stage ') + now.toLocaleTimeString(mvL('ar-EG','en-US'), {hour:'2-digit', minute:'2-digit'});
+  const name = prompt(mvT('اسم المرحلة:'), def);
+  if(name === null) return;
+  const cv = $('mvCanvas');
+  mvDraw(true);
+  const image = cv.toDataURL('image/jpeg', 0.88);
+  mvDraw();
+  const tc = document.createElement('canvas'); const k = 220 / cv.width; tc.width = 220; tc.height = Math.max(1, Math.round(cv.height * k));
+  tc.getContext('2d').drawImage(cv, 0, 0, tc.width, tc.height);
+  // الصورة الفعلية للمعاينة تتأخد من حالة الكانفاس وقت الحفظ بدون واجهة التحديد
+  const thumb = tc.toDataURL('image/jpeg', 0.7);
+  const rec = { id: Date.now(), name: (name.trim() || def), ts: Date.now(), thumb, image, state: mvSerialize() };
+  try{ await mvIdbOp('readwrite', s=>s.put(rec)); showToast(mvT('تم حفظ المرحلة')); mvRenderStages(); }
+  catch(e){ showToast(mvT('تعذر حفظ المرحلة (مساحة التخزين؟)'), true); }
+}
+function mvDownloadJson(){
+  const blob = new Blob([JSON.stringify(mvSerialize())], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = mvL('رسم-', 'drawing-') + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+async function mvImportJson(file){
+  try{
+    const st = JSON.parse(await file.text());
+    if(!st || !st.base || !Array.isArray(st.shapes)) throw new Error('bad');
+    await mvDeserialize(st); mvUpdateHint(); showToast(mvT('تم فتح الملف'));
+  } catch(_){ showToast(mvT('الملف ده مش ملف رسم صالح'), true); }
+}
+function closeMeasureViewer(){ if(window.__STANDALONE) return;
+  if(mv.cmp.open) mvCloseCompare();
+  $('measureViewer').classList.remove('open');
+  mv.img = null; mv.shapes = []; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.drag = null; mv.pivot = null; mv.baseUrl = null;
+}
+async function mvOpen(dataUrl){
+  mvBind();
+  try{ await mvLoadBase(dataUrl || mvBlankUrl(), !dataUrl); }
+  catch(_){ showToast(mvT('تعذر فتح الصورة'), true); return; }
+  mv.shapes = []; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.mmPerPx = null; mv.mouse = null; mv.pivot = null;
+  mv.titleAr = dataUrl ? '📐 قياس على صورة المريض' : '📐 الرسم والقياس'; $('mvTitle').textContent = mvT(mv.titleAr);
+  $('measureViewer').classList.add('open');
+  mvApplyLang(); mvRefit(); mvSetTool('line'); mvRenderStages(); mvDraw();
+}
+function openMeasureViewer(dataUrl){
+  if(!dataUrl){ showToast(mvT('الصورة دي متعذر تحميلها'), true); return; }
+  mvOpen(dataUrl);
+}
+function openMeasureStudio(){ mvOpen(null); }
+
+
+window.mv = mv;
+openMeasureStudio();
+</script>
+</body>
+</html>
