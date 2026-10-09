@@ -6,9 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   html,body{margin:0; height:100%; background:#0f1412; font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
-  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0f766e; color:#fff; padding:12px 22px; border-radius:10px; font-size:14px; z-index:1000010; opacity:0; transition:opacity .2s; pointer-events:none;}
-  .toast.show{opacity:1;}
-  .toast.error{background:#c0392b;}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0f766e; color:#fff; padding:12px 22px; border-radius:10px; font-size:14px; z-index:3000000; opacity:0; transition:opacity .2s; pointer-events:none;}
+  .toast.show{opacity:1;} .toast.error{background:#c0392b;}
   #mvClose{display:none !important;}
 .mv-overlay{display:none; position:fixed; inset:0; background:#0f1412; z-index:1000001; flex-direction:column; direction:rtl; color:#f2efe6;}
   .mv-overlay.open{display:flex;}
@@ -49,6 +48,11 @@
   .mv-overlay select{font-family:inherit; padding:5px; border-radius:6px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; max-width:100%;}
   .mv-loupe{position:absolute; width:160px; height:160px; border-radius:50%; border:3px solid #ffe66d; box-shadow:0 4px 18px rgba(0,0,0,.65); pointer-events:none; display:none; z-index:4; background:#000;}
   .mv-cmp-sel{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 8px;}
+  .mv-hlist{max-height:190px; overflow:auto; margin-top:6px; border:1px solid #3a463f; border-radius:8px; background:#1d2622;}
+  .mv-hitem{padding:5px 8px; font-size:12px; cursor:pointer; display:flex; gap:6px; border-bottom:1px solid #2a352f;}
+  .mv-hitem:hover{background:#26312b;}
+  .mv-hitem.cur{background:#2f8f6b; color:#fff;}
+  .mv-hitem.fut{opacity:.5;}
   .mv-compare{position:absolute; inset:0; z-index:3; display:none; flex-direction:column; background:#0f1412; min-width:0;}
   .mv-cmp-bar{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:6px 8px; background:#1c2420; border-bottom:1px solid #2f3a34;}
   .mv-cmp-grid{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:6px;}
@@ -67,6 +71,25 @@
     .mv-overlay.ltr .mv-side.open{transform:none;}
   }
   
+#authGate{position:fixed; inset:0; z-index:2000000; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 30% 20%,#1d3a30,#0f1412 70%); direction:rtl; padding:16px; overflow:auto; color:#f2efe6; font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+.ag-card{width:100%; max-width:440px; background:#18211d; border:1px solid #2f3b35; border-radius:16px; padding:22px; box-shadow:0 12px 40px rgba(0,0,0,.5); margin:auto;}
+.ag-card h2{margin:0 0 12px; font-size:20px; text-align:center;}
+.ag-card input{width:100%; box-sizing:border-box; margin:6px 0; padding:11px 12px; border-radius:10px; border:1px solid #3a463f; background:#0f1412; color:#f2efe6; font-size:15px; font-family:inherit;}
+.ag-b,.ag-b2{width:100%; margin-top:10px; padding:11px; border-radius:10px; border:0; font-size:15px; font-family:inherit; cursor:pointer;}
+.ag-b{background:#2f8f6b; color:#fff;} .ag-b2{background:#26312b; color:#f2efe6; border:1px solid #3a463f;}
+.ag-b:disabled{opacity:.6;}
+.ag-tabs{display:flex; gap:6px; margin-bottom:8px;} .ag-tabs button{flex:1; padding:9px; border-radius:9px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; cursor:pointer; font-family:inherit;} .ag-tabs button.on{background:#2f8f6b; border-color:#2f8f6b;}
+.ag-err{color:#ff8a80; min-height:20px; font-size:13px; margin-top:6px; text-align:center;}
+.ag-m{font-size:13px; opacity:.85; line-height:1.7;}
+.ag-ol{font-size:13px; line-height:1.8; padding-inline-start:20px;} .ag-ol pre{direction:ltr; text-align:left; background:#0f1412; padding:8px; border-radius:8px; font-size:11px; overflow:auto; max-height:170px;} .ag-ol code{background:#0f1412; padding:1px 5px; border-radius:4px;}
+#authChip{margin-inline-start:auto; display:inline-flex; gap:6px; align-items:center; flex-wrap:wrap;} #authChip .ac-n{font-size:12px; background:#26312b; border:1px solid #3a463f; padding:5px 8px; border-radius:8px;}
+#adminPanel{position:fixed; inset:0; z-index:2000001; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; padding:12px; direction:rtl; font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+.ap-box{background:#18211d; color:#f2efe6; border:1px solid #2f3b35; border-radius:14px; width:100%; max-width:860px; max-height:92vh; overflow:auto; padding:14px;}
+.ap-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;} .ap-box button{font-family:inherit; padding:6px 10px; border-radius:8px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; cursor:pointer; margin:2px;}
+.ap-add{display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#1d2622; padding:8px; border-radius:10px;} .ap-add input{padding:7px; border-radius:8px; border:1px solid #3a463f; background:#0f1412; color:#f2efe6; width:120px;} .ap-add input[type=number]{width:80px;}
+.ap-msg{min-height:22px; margin:6px 2px; font-size:13px; color:#ffe66d;}
+.ap-tbl table{width:100%; border-collapse:collapse; font-size:13px;} .ap-tbl th,.ap-tbl td{border-bottom:1px solid #2a352f; padding:7px 6px; text-align:right;} .ap-tbl input.lim{width:70px; padding:5px; border-radius:6px; border:1px solid #3a463f; background:#0f1412; color:#f2efe6;} .ok{color:#6fe3a5;} .wt{color:#ffd24d;}
+
 </style>
 </head>
 <body>
@@ -81,6 +104,7 @@
     <input type="file" id="mvJsonFile" accept=".json,application/json" style="display:none;">
     <span class="mv-sep"></span>
     <button id="mvUndo">↩ تراجع</button>
+    <button id="mvRedo">↪ إعادة</button>
     <button id="mvClear">🗑 مسح الكل</button>
     <span class="mv-sep"></span>
     <button id="mvZoomOut">➖</button>
@@ -132,6 +156,19 @@
         <div class="mv-lbl" id="mvCropTarget" style="margin-bottom:4px;"></div>
         <div class="mv-lbl" style="opacity:.7;font-size:11px;">لكروب صورة مدرجة: حددها بأداة التحريك الأول، وبعدين اختار كروب</div>
         <div class="mv-row" style="margin-top:0;"><button id="mvCropApply">✔ تطبيق الكروب</button><button id="mvCropCancel">✖ إلغاء</button></div>
+      </div>
+      <div class="mv-sec" id="mvHistGrp">
+        <details open>
+          <summary class="mv-sh" style="cursor:pointer;">🎞 الخطوات</summary>
+          <div class="mv-row" style="margin-top:4px;">
+            <button id="mvHFirst" title="البداية">⏮</button><button id="mvHPrev" title="خطوة للخلف">⏪</button><button id="mvHPlay" title="تشغيل">▶</button><button id="mvHNext" title="خطوة للأمام">⏩</button><button id="mvHLast" title="النهاية">⏭</button>
+          </div>
+          <div class="mv-row"><span class="mv-lbl">السرعة</span>
+            <select id="mvHSpeed"><option value="1800">بطيء</option><option value="900" selected>عادي</option><option value="400">سريع</option></select>
+            <b class="mv-lbl" id="mvHCount" data-i18n-skip></b></div>
+          <div class="mv-lbl" style="opacity:.7;font-size:11px;">تسجيل الخطوات بيتم تلقائيًا — اضغط على أي خطوة للرجوع لها</div>
+          <div id="mvHList" class="mv-hlist" data-i18n-skip></div>
+        </details>
       </div>
       <div class="mv-sec" id="mvPieceGrp" style="display:none;">
         <div class="mv-sh">🔩 الصورة المدرجة / القطعة</div>
@@ -300,7 +337,7 @@ const MV_EN = {
 "✂️ قص": "✂️ Cut",
 "✋ تحريك/تحديد": "✋ Move / Select",
 "✏️ الرسم": "✏️ Drawing",
-"✏️ رسم حر": "✏️ Freehand",
+"✏️ رسم حر": "✏️ Free draw",
 "✔ إنهاء القص": "✔ Finish cut",
 "✔ إنهاء المنحنى": "✔ Finish curve",
 "✖ إغلاق": "✖ Close",
@@ -324,7 +361,7 @@ const MV_EN = {
 "🔄 تدوير": "🔄 Rotate",
 "🔍➕ تكبير القطعة": "🔍➕ Enlarge piece",
 "🔍➖ تصغير القطعة": "🔍➖ Shrink piece",
-"🔗 زاوية بين خطين موجودين": "🔗 Angle between two lines",
+"🔗 زاوية بين خطين موجودين": "🔗 Angle between existing lines",
 "🔤 كتابة": "🔤 Text",
 "🖐 تنقّل": "🖐 Pan",
 "🖼 إدراج صورة": "🖼 Insert image",
@@ -395,7 +432,7 @@ const MV_EN = {
 "تنزيل صورة": "Download image",
 "حذف": "Delete",
 "🔲 كروب": "🔲 Crop",
-"🎚 تعديل الصورة": "🎚 Image adjustments",
+"🎚 تعديل الصورة": "🎚 Image adjust",
 "السطوع": "Brightness",
 "التباين": "Contrast",
 "جاما (الإضاءة المتوسطة)": "Gamma (midtones)",
@@ -450,7 +487,28 @@ const MV_EN = {
 "الخطوة (درجة)": "Step (deg)",
 "الهدف: الصورة المدرجة المحددة فقط": "Target: the selected inserted image only",
 "الهدف: الصورة الأساسية (الخلفية)": "Target: the base image (background)",
-"لكروب صورة مدرجة: حددها بأداة التحريك الأول، وبعدين اختار كروب": "To crop an inserted image: select it with the Move tool first, then choose Crop"
+"لكروب صورة مدرجة: حددها بأداة التحريك الأول، وبعدين اختار كروب": "To crop an inserted image: select it with the Move tool first, then choose Crop",
+"الحالة الأولى": "Initial state",
+"📏 خط قياس": "📏 Measuring line",
+"📐 معايرة": "📐 Calibration",
+"∠ زاوية": "∠ Angle",
+"🔤 نص": "🔤 Text",
+"〰 منحنى": "〰 Curve",
+"⚪ نقطة": "⚪ Point",
+"➗ منتصف": "➗ Midpoint",
+"✂️ قص قطعة": "✂️ Cut piece",
+"🗑 حذف": "🗑 Delete",
+"✏️ تعديل": "✏️ Edit",
+"↪ إعادة": "↪ Redo",
+"🎞 الخطوات": "🎞 Steps",
+"خطوة": "Step",
+"عرض الخطوات بالتسلسل": "Play steps in order",
+"السرعة": "Speed",
+"بطيء": "Slow",
+"عادي": "Normal",
+"سريع": "Fast",
+"تسجيل الخطوات بيتم تلقائيًا — اضغط على أي خطوة للرجوع لها": "Steps are recorded automatically — click any step to jump to it",
+"📐 زاوية بين خطين": "📐 Angle between lines"
 };
 mv.lang = 'ar';
 try{ mv.lang = localStorage.getItem('mvLang') === 'en' ? 'en' : 'ar'; }catch(_){}
@@ -1322,9 +1380,10 @@ function mvBind(){
   $('mvUndo').onclick = ()=>{
     if(mv.pending.length) mv.pending.pop();
     else if(mv.pendRefs.length) mv.pendRefs.pop();
-    else { const last = mv.shapes.pop(); if(last){ mv.multi.delete(last); if(last === mv.sel) mv.sel = [...mv.multi].pop() || null; if(last.type === 'cropmark') mvUndoCrop(last); } mvRecalcCalib(); }
+    else { mvHStop(); mvHGo(mvH.i - 1); return; }
     mvSyncControls(); mvUpdateHint(); mvDraw();
   };
+  mvHBind();
   $('mvDelSel').onclick = ()=>{ [...mv.multi].forEach(s=> mvDeleteShape(s)); mvSyncControls(); mvUpdateHint(); mvDraw(); };
   $('mvClear').onclick = ()=>{
     if(!mv.shapes.length && !mv.pending.length) return;
@@ -1423,7 +1482,8 @@ function mvBind(){
     else if(e.key === 'Enter' && mv.tool === 'crop' && !typing){ mvApplyCrop(); }
     else if(e.key === 'Enter' && mv.tool === 'curve' && !typing){ mvFinishCurve(); }
     else if((e.key === 'Delete' || e.key === 'Backspace') && mv.multi.size && !typing){ $('mvDelSel').click(); }
-    else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing){ $('mvUndo').click(); }
+    else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing){ if(e.shiftKey) $('mvRedo').click(); else $('mvUndo').click(); }
+    else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y' && !typing){ $('mvRedo').click(); }
   });
   st.addEventListener('wheel', e=>{
     if(!e.ctrlKey) return;
@@ -1519,7 +1579,7 @@ async function mvDeserialize(state){
   out.forEach(s=>{ if(s.type === 'lineangle'){ s.r1 = { s:out[s.r1.si], i:s.r1.i }; s.r2 = { s:out[s.r2.si], i:s.r2.i }; } });
   mv.adj = state.adj ? { ...mvAdjDefault(), ...state.adj } : mvAdjDefault(); mvReprocessBase();
   mv.shapes = out; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.pivot = null; mvRecalcCalib();
-  mvRefit(); mvSetTool('move'); mvDraw();
+  mvRefit(); mvSetTool('move'); mvDraw(); mvHReset();
 }
 // ----- تعديل الألوان والحدّة -----
 function mvAdjDefault(){ return { b:0, c:0, g:100, s:0, sh:0, inv:false, gray:false, auto:false }; }
@@ -1780,6 +1840,117 @@ function mvUndoCrop(mark){
   const cv = $('mvCanvas'); cv.width = mv.img.naturalWidth; cv.height = mv.img.naturalHeight;
   mvShiftAll(mark.dx, mark.dy); mvReprocessBase(); mvRefit();
 }
+
+// ===== سجل الخطوات: رجوع / تقدم / عرض متسلسل =====
+const mvH = { snaps:[], i:-1, sig:'', busy:false, play:null, ids:new WeakMap(), nid:1, idx:new Map() };
+function mvHId(o){ let v = mvH.ids.get(o); if(!v){ v = mvH.nid++; mvH.ids.set(o, v); } return v; }
+function mvHSig(){
+  const shapes = mv.shapes;
+  mvH.idx = new Map(shapes.map((x,i)=>[x,i]));
+  const rep = function(k, v){
+    if(typeof k === 'string' && k[0] === '_') return undefined;
+    if(v && typeof v === 'object'){
+      if(v instanceof HTMLCanvasElement || v instanceof HTMLImageElement) return '@' + mvHId(v);
+      if(ArrayBuffer.isView(v)) return undefined;
+      if(this !== shapes && mvH.idx.has(v)) return '#' + mvH.idx.get(v);
+    }
+    return v;
+  };
+  return JSON.stringify([shapes, mv.adj, mv.mmPerPx, mv.pivot, mv.img ? mvHId(mv.img) : 0], rep);
+}
+function mvHClone(o, memo){
+  if(o === null || typeof o !== 'object') return o;
+  if(o instanceof HTMLCanvasElement || o instanceof HTMLImageElement || ArrayBuffer.isView(o)) return o;
+  if(memo.has(o)) return memo.get(o);
+  if(Array.isArray(o)){ const a = []; memo.set(o, a); o.forEach(x => a.push(mvHClone(x, memo))); return a; }
+  const r = {}; memo.set(o, r);
+  for(const k in o) r[k] = mvHClone(o[k], memo);
+  return r;
+}
+function mvHSnap(label){
+  const memo = new Map();
+  return { label, sig:mvHSig(), shapes:mvHClone(mv.shapes, memo), adj:mvHClone(mv.adj, memo), pivot:mv.pivot ? mvHClone(mv.pivot, memo) : null,
+           mm:mv.mmPerPx, img:mv.img, baseUrl:mv.baseUrl, baseBlank:mv.baseBlank, cw:$('mvCanvas').width, ch:$('mvCanvas').height };
+}
+function mvHLabel(prev){
+  const cur = mv.shapes;
+  if(cur.length > prev.shapes.length){
+    const t = cur[cur.length - 1];
+    const map = { line:'📏 خط قياس', calib:'📐 معايرة', angle:'∠ زاوية', angle2:'∠ زاوية', lineangle:'∠ زاوية', pen:'✏️ رسم حر', text:'🔤 نص', curve:'〰 منحنى', point:'⚪ نقطة', mid:'➗ منتصف', cropmark:'🔲 كروب' };
+    if(t.type === 'piece') return (t.noOutline && !t.hole) ? '🖼 إدراج صورة' : '✂️ قص قطعة';
+    return map[t.type] || '✏️ تعديل';
+  }
+  if(cur.length < prev.shapes.length) return '🗑 حذف';
+  if(mv.img !== prev.img) return '🖼 إدراج صورة';
+  if(JSON.stringify(mv.adj) !== JSON.stringify(prev.adj)) return '🎚 تعديل الصورة';
+  return '✏️ تعديل';
+}
+function mvHReset(){
+  mvH.snaps = [mvHSnap('الحالة الأولى')]; mvH.i = 0; mvH.sig = mvH.snaps[0].sig; mvHStop(); mvHRender();
+}
+function mvHCheck(){
+  if(mvH.busy || mv.drag || !mv.img || !$('measureViewer').classList.contains('open') || mvH.i < 0) return;
+  const sig = mvHSig(); if(sig === mvH.sig) return;
+  const prev = mvH.snaps[mvH.i], sn = mvHSnap(mvHLabel(prev));
+  mvH.snaps.length = mvH.i + 1; mvH.snaps.push(sn);
+  if(mvH.snaps.length > 150) mvH.snaps.shift();
+  mvH.i = mvH.snaps.length - 1; mvH.sig = sig; mvHRender();
+}
+function mvHRestore(sn){
+  mvH.busy = true;
+  try{
+    const memo = new Map();
+    mv.shapes = mvHClone(sn.shapes, memo); mv.adj = mvHClone(sn.adj, memo); mv.pivot = sn.pivot ? mvHClone(sn.pivot, memo) : null; mv.mmPerPx = sn.mm;
+    mv.img = sn.img; mv.baseUrl = sn.baseUrl; mv.baseBlank = sn.baseBlank;
+    const cv = $('mvCanvas'), resized = cv.width !== sn.cw || cv.height !== sn.ch;
+    if(resized){ cv.width = sn.cw; cv.height = sn.ch; }
+    mv.pending = []; mv.pendRefs = []; mvSetSel(null); mvReprocessBase();
+    if(resized) mvRefit();
+    mvSyncControls(); mvUpdateHint(); mvDraw();
+    mvH.sig = mvHSig();
+  } finally { mvH.busy = false; }
+}
+function mvHGo(i){
+  mvHCheck();
+  i = Math.max(0, Math.min(mvH.snaps.length - 1, i));
+  mvH.i = i; mvHRestore(mvH.snaps[i]); mvHRender();
+}
+function mvHStop(){ if(mvH.play){ clearInterval(mvH.play); mvH.play = null; } const b = $('mvHPlay'); if(b) b.textContent = '▶'; }
+function mvHPlay(){
+  if(mvH.play){ mvHStop(); return; }
+  mvHCheck();
+  if(mvH.snaps.length < 2) return;
+  if(mvH.i >= mvH.snaps.length - 1) mvHGo(0);
+  $('mvHPlay').textContent = '⏸';
+  mvH.play = setInterval(()=>{
+    if(mvH.i >= mvH.snaps.length - 1){ mvHStop(); return; }
+    mvHGo(mvH.i + 1);
+  }, Number($('mvHSpeed').value) || 900);
+}
+function mvHRender(){
+  const L = $('mvHList'); if(!L) return;
+  L.innerHTML = mvH.snaps.map((sn, i) => `<div class="mv-hitem${i === mvH.i ? ' cur' : ''}${i > mvH.i ? ' fut' : ''}" data-i="${i}"><b>${i}</b><span>${mvT(sn.label)}</span></div>`).join('');
+  L.querySelectorAll('.mv-hitem').forEach(el => el.onclick = ()=>{ mvHStop(); mvHGo(Number(el.dataset.i)); });
+  const cur = L.querySelector('.cur'); if(cur) cur.scrollIntoView({ block:'nearest' });
+  $('mvHCount').textContent = mvT('خطوة') + ' ' + mvH.i + ' / ' + (mvH.snaps.length - 1);
+  $('mvRedo').style.opacity = mvH.i < mvH.snaps.length - 1 ? '1' : '.45';
+  $('mvUndo').style.opacity = '1';
+}
+function mvHBind(){
+  $('mvHFirst').onclick = ()=>{ mvHStop(); mvHGo(0); };
+  $('mvHPrev').onclick = ()=>{ mvHStop(); mvHGo(mvH.i - 1); };
+  $('mvHNext').onclick = ()=>{ mvHStop(); mvHGo(mvH.i + 1); };
+  $('mvHLast').onclick = ()=>{ mvHStop(); mvHGo(mvH.snaps.length - 1); };
+  $('mvHPlay').onclick = mvHPlay;
+  $('mvHSpeed').onchange = ()=>{ if(mvH.play){ mvHStop(); mvHPlay(); } };
+  $('mvRedo').onclick = ()=>{ mvHStop(); mvHGo(mvH.i + 1); };
+  const ov = $('measureViewer'), soon = ()=> setTimeout(mvHCheck, 40);
+  ov.addEventListener('pointerup', soon); ov.addEventListener('click', soon); ov.addEventListener('change', soon); ov.addEventListener('keyup', soon);
+  let t = 0; ov.addEventListener('input', ()=>{ clearTimeout(t); t = setTimeout(mvHCheck, 500); });
+  $('mvCanvas').addEventListener('pointerdown', mvHStop);
+  setInterval(mvHCheck, 600);
+}
+
 // ----- المقارنة (صورة واحدة مدموجة) -----
 function mvCmpSnapshot(){
   if(!mv.img) return null;
@@ -1944,7 +2115,7 @@ async function mvOpen(dataUrl){
   mv.shapes = []; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.mmPerPx = null; mv.mouse = null; mv.pivot = null;
   mv.titleAr = dataUrl ? '📐 قياس على صورة المريض' : '📐 الرسم والقياس'; $('mvTitle').textContent = mvT(mv.titleAr);
   $('measureViewer').classList.add('open');
-  mvApplyLang(); mvRefit(); mvSetTool('line'); mvRenderStages(); mvDraw();
+  mvApplyLang(); mvRefit(); mvSetTool('line'); mvRenderStages(); mvDraw(); mvHReset();
 }
 function openMeasureViewer(dataUrl){
   if(!dataUrl){ showToast(mvT('الصورة دي متعذر تحميلها'), true); return; }
@@ -1953,8 +2124,232 @@ function openMeasureViewer(dataUrl){
 function openMeasureStudio(){ mvOpen(null); }
 
 
-window.mv = mv;
-openMeasureStudio();
+window.__startStudio = openMeasureStudio;
+window.__stopStudio = ()=> $('measureViewer').classList.remove('open');
+</script>
+<script type="module">
+/* ===== بوابة الدخول + لوحة الأدمن ===== */
+const STUDIO_FIREBASE = {
+  // ⬇⬇ الصق هنا إعدادات مشروع Firebase الخاص ببرنامج الرسم (مش مشروع العيادة) ⬇⬇
+  apiKey: "AIzaSyCqLuGPDSBehCjy_tVsxcK6nyQxEueqo34",
+  authDomain: "dr-remon-measurment.firebaseapp.com",
+  projectId: "dr-remon-measurment",
+  appId: "1:456129478704:web:dd668e350c27f796452df5"
+  // ⬆⬆ ------------------------------------------------------------------ ⬆⬆
+};
+const FB_VER = '10.13.1';
+const RULES_TEXT = `rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function me() { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(db)/documents/users/$(request.auth.uid))
+        && me().role == 'admin' && me().active == true;
+    }
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if isAdmin() || (request.auth != null && request.auth.uid == uid
+        && request.resource.data.role == 'user' && request.resource.data.active == false
+        && request.resource.data.used == 0 && request.resource.data.limit == 0);
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
+        && resource.data.active == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used'])
+        && request.resource.data.used == resource.data.used + 1
+        && request.resource.data.used <= resource.data.limit);
+      allow delete: if isAdmin();
+    }
+  }
+}`;
+const $a = id => document.getElementById(id);
+const esc = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toEmail = u => u.toLowerCase() + '@studio.app';
+const USER_RE = /^[a-z0-9._-]{3,20}$/i;
+function errMsg(e){
+  const c = (e && (e.code || e.message)) || '';
+  if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) return 'اسم المستخدم أو كلمة المرور غلط';
+  if(/email-already-in-use/.test(c)) return 'اسم المستخدم ده مستخدم قبل كده';
+  if(/weak-password/.test(c)) return 'كلمة المرور ضعيفة (6 حروف/أرقام على الأقل)';
+  if(/too-many-requests/.test(c)) return 'محاولات كتير — استنى شوية وجرب تاني';
+  if(/network/.test(c)) return 'مفيش اتصال بالإنترنت';
+  if(/permission-denied|insufficient/.test(c)) return 'مفيش صلاحية — اتأكد إن قواعد Firestore متضافة صح';
+  if(/operation-not-allowed|configuration-not-found/.test(c)) return 'فعّل Email/Password من Authentication في مشروع Firebase';
+  return 'حصل خطأ: ' + (e && e.message || c || '');
+}
+
+/* ---------- الواجهة الخلفية (Firebase) ---------- */
+async function makeFirebaseBackend(){
+  const base = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
+  const [A, Au, Fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+  const app = A.initializeApp(STUDIO_FIREBASE), auth = Au.getAuth(app), db = Fs.getFirestore(app);
+  const ud = uid => Fs.doc(db, 'users', uid);
+  return {
+    onAuth(cb){ Au.onAuthStateChanged(auth, u => cb(u ? { uid:u.uid, username:(u.email || '').split('@')[0] } : null)); },
+    async signIn(u, p){ await Au.signInWithEmailAndPassword(auth, toEmail(u), p); },
+    async signUp(u, p){ const c = await Au.createUserWithEmailAndPassword(auth, toEmail(u), p); return c.user.uid; },
+    signOut(){ return Au.signOut(auth); },
+    async getProfile(uid){ const s = await Fs.getDoc(ud(uid)); return s.exists() ? s.data() : null; },
+    async createProfile(uid, d){ await Fs.setDoc(ud(uid), { ...d, createdAt: Fs.serverTimestamp() }); },
+    async useOne(uid){ await Fs.updateDoc(ud(uid), { used: Fs.increment(1) }); },
+    async listUsers(){ const s = await Fs.getDocs(Fs.collection(db, 'users')); return s.docs.map(d => ({ uid:d.id, ...d.data() })); },
+    async updateUser(uid, d){ await Fs.updateDoc(ud(uid), d); },
+    async adminCreate(u, p, name, limit){
+      const sec = A.initializeApp(STUDIO_FIREBASE, 'sec' + Date.now()), sa = Au.getAuth(sec);
+      try{
+        const c = await Au.createUserWithEmailAndPassword(sa, toEmail(u), p);
+        await Fs.setDoc(ud(c.user.uid), { username:u.toLowerCase(), name, role:'user', active:true, limit, used:0, createdAt: Fs.serverTimestamp() });
+        await Au.signOut(sa);
+      } finally { try{ await A.deleteApp(sec); }catch(_){} }
+    },
+    async changePassword(p){ await Au.updatePassword(auth.currentUser, p); }
+  };
+}
+
+/* ---------- الواجهة ---------- */
+const gate = document.createElement('div'); gate.id = 'authGate'; document.body.appendChild(gate);
+let B = null, me = null, prof = null;
+
+function gateHTML(inner){ gate.style.display = 'flex'; gate.innerHTML = '<div class="ag-card">' + inner + '</div>'; }
+function hideGate(){ gate.style.display = 'none'; gate.innerHTML = ''; }
+function setBusy(btn, on, txt){ btn.disabled = on; if(on){ btn.dataset.t = btn.textContent; btn.textContent = txt || '...'; } else if(btn.dataset.t) btn.textContent = btn.dataset.t; }
+
+function showSetup(){
+  gateHTML(`<h2>⚙️ إعداد البرنامج لأول مرة</h2>
+  <p class="ag-m">محتاج مشروع Firebase <b>منفصل</b> لبرنامج الرسم (مش نفس مشروع العيادة، عشان بيانات المرضى تفضل محمية).</p>
+  <ol class="ag-ol">
+   <li>ادخل <b>console.firebase.google.com</b> ← <b>Add project</b> (اسم مثلاً drawing-studio).</li>
+   <li><b>Build ← Authentication ← Get started ← Email/Password ← Enable</b>.</li>
+   <li><b>Build ← Firestore Database ← Create database</b> (Production mode).</li>
+   <li>من تبويب <b>Rules</b> الصق القواعد دي واضغط Publish:
+     <pre id="agRules">${esc(RULES_TEXT)}</pre><button class="ag-b2" id="agCopy">📋 نسخ القواعد</button></li>
+   <li><b>Project settings ← Your apps ← Web (&lt;/&gt;)</b> وانسخ قيم <code>apiKey</code> و <code>authDomain</code> و <code>projectId</code> و <code>appId</code>.</li>
+   <li>افتح الملف <code>index.html</code> بأي محرر نصوص، وابحث عن <code>STUDIO_FIREBASE</code> والصق القيم، وارفعه تاني.</li>
+   <li>سجّل حساب من شاشة الدخول، وبعدها من <b>Firestore ← users ← مستندك</b> غيّر <code>role</code> إلى <code>admin</code> و <code>active</code> إلى <code>true</code>. ده بيبقى الأدمن.</li>
+  </ol>`);
+  $a('agCopy').onclick = ()=>{ navigator.clipboard && navigator.clipboard.writeText(RULES_TEXT); $a('agCopy').textContent = '✔ اتنسخت'; };
+}
+
+function showLogin(mode, msg){
+  const reg = mode === 'register';
+  gateHTML(`<h2>📐 برنامج الرسم والقياس</h2>
+   <div class="ag-tabs"><button id="agTL" class="${reg ? '' : 'on'}">دخول</button><button id="agTR" class="${reg ? 'on' : ''}">طلب حساب جديد</button></div>
+   ${reg ? '<input id="agName" placeholder="الاسم (اختياري)" autocomplete="name">' : ''}
+   <input id="agU" placeholder="اسم المستخدم (إنجليزي/أرقام)" autocomplete="username" dir="ltr">
+   <input id="agP" type="password" placeholder="كلمة المرور" autocomplete="${reg ? 'new-password' : 'current-password'}" dir="ltr">
+   ${reg ? '<input id="agP2" type="password" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password" dir="ltr">' : ''}
+   <button class="ag-b" id="agGo">${reg ? 'إرسال الطلب' : 'دخول'}</button>
+   <div class="ag-err" id="agErr">${esc(msg || '')}</div>
+   ${reg ? '<p class="ag-m">بعد إرسال الطلب، الأدمن هيفعّل حسابك ويحدد عدد مرات الاستخدام.</p>' : ''}`);
+  $a('agTL').onclick = ()=> showLogin('login'); $a('agTR').onclick = ()=> showLogin('register');
+  const go = async ()=>{
+    const u = $a('agU').value.trim(), p = $a('agP').value, err = $a('agErr'); err.textContent = '';
+    if(!USER_RE.test(u)){ err.textContent = 'اسم المستخدم 3–20 حرف إنجليزي أو أرقام (يسمح بـ . _ -)'; return; }
+    if(p.length < 6){ err.textContent = 'كلمة المرور 6 حروف/أرقام على الأقل'; return; }
+    if(reg && p !== $a('agP2').value){ err.textContent = 'كلمتين المرور مش زي بعض'; return; }
+    const btn = $a('agGo'); setBusy(btn, true, 'لحظة...');
+    try{
+      if(reg){
+        const name = ($a('agName').value || '').trim() || u, uid = await B.signUp(u, p);
+        try{ await B.createProfile(uid, { username:u.toLowerCase(), name, role:'user', active:false, limit:0, used:0 }); }catch(e){ /* هيتحاول تاني عند الدخول */ }
+      } else await B.signIn(u, p);
+    }catch(e){ err.textContent = errMsg(e); setBusy(btn, false); }
+  };
+  $a('agGo').onclick = go; gate.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') go(); }));
+}
+
+function showStatus(icon, title, text, extra){
+  gateHTML(`<div style="font-size:44px;text-align:center">${icon}</div><h2>${title}</h2><p class="ag-m" style="text-align:center">${text}</p>
+   <button class="ag-b" id="agRef">🔄 تحديث الحالة</button><button class="ag-b2" id="agOut">تسجيل الخروج</button>${extra || ''}`);
+  $a('agRef').onclick = ()=> route(me); $a('agOut').onclick = ()=> B.signOut();
+}
+
+async function route(user){
+  me = user; prof = null;
+  if(!user){ if(window.__stopStudio) window.__stopStudio(); document.querySelectorAll('#authChip,#adminPanel').forEach(n => n.remove()); showLogin('login'); return; }
+  gateHTML('<p class="ag-m" style="text-align:center">جاري التحقق...</p>');
+  try{
+    prof = await B.getProfile(user.uid);
+    if(!prof){
+      await B.createProfile(user.uid, { username:user.username, name:user.username, role:'user', active:false, limit:0, used:0 });
+      prof = await B.getProfile(user.uid);
+    }
+  }catch(e){ showStatus('⚠️', 'تعذر التحقق من الحساب', esc(errMsg(e))); return; }
+  const isAdmin = prof.role === 'admin' && prof.active === true;
+  if(!isAdmin){
+    if(!prof.active){ showStatus('⏳', 'حسابك في انتظار التفعيل', 'الأدمن لازم يفعّل حسابك ويحدد عدد مرات الاستخدام. ارجع حدّث الصفحة بعد التفعيل.'); return; }
+    const key = 'studio_counted_' + user.uid;
+    if(!sessionStorage.getItem(key)){
+      if((prof.used || 0) >= (prof.limit || 0)){ showStatus('🚫', 'انتهت مرات الاستخدام', 'استنفدت عدد مرات الاستخدام المسموحة (' + (prof.limit || 0) + '). كلّم الأدمن عشان يجدد لك.'); return; }
+      try{ await B.useOne(user.uid); sessionStorage.setItem(key, '1'); prof = await B.getProfile(user.uid); }
+      catch(e){ showStatus('⚠️', 'تعذر تسجيل الاستخدام', esc(errMsg(e))); return; }
+    }
+  }
+  hideGate(); mountChip(); if(window.__startStudio) window.__startStudio();
+}
+
+function mountChip(){
+  document.querySelectorAll('#authChip').forEach(n => n.remove());
+  const isAdmin = prof.role === 'admin' && prof.active === true, left = Math.max(0, (prof.limit || 0) - (prof.used || 0));
+  const chip = document.createElement('span'); chip.id = 'authChip';
+  chip.innerHTML = `<span class="ac-n">👤 ${esc(prof.name || me.username)}</span>` +
+    (isAdmin ? '<span class="ac-n">👑 أدمن</span>' : `<span class="ac-n" title="باقي ${left} مرة">🎟 متبقي ${left}</span>`) +
+    (isAdmin ? '<button id="acAdmin">⚙️ المستخدمين</button>' : '') + '<button id="acPw">🔑</button><button id="acOut">🚪 خروج</button>';
+  const bar = document.querySelector('#measureViewer .mv-top'); (bar || document.body).appendChild(chip);
+  if(isAdmin) $a('acAdmin').onclick = openAdmin;
+  $a('acPw').onclick = async ()=>{ const p = prompt('كلمة المرور الجديدة (6 على الأقل):'); if(!p) return; if(p.length < 6){ alert('قصيرة'); return; } try{ await B.changePassword(p); alert('تم تغيير كلمة المرور'); }catch(e){ alert(errMsg(e) + '\nلو الرسالة عن «إعادة تسجيل الدخول» اخرج وادخل تاني وجرب.'); } };
+  $a('acOut').onclick = ()=>{ if(confirm('تسجيل الخروج؟')) { sessionStorage.removeItem('studio_counted_' + me.uid); B.signOut(); } };
+}
+
+/* ---------- لوحة الأدمن ---------- */
+async function openAdmin(){
+  let panel = $a('adminPanel'); if(panel) panel.remove();
+  panel = document.createElement('div'); panel.id = 'adminPanel';
+  panel.innerHTML = `<div class="ap-box"><div class="ap-top"><b>👑 إدارة المستخدمين</b><button id="apX">✖ إغلاق</button></div>
+   <div class="ap-add"><b>➕ إضافة مستخدم (مفعّل مباشرة)</b>
+     <input id="apN" placeholder="الاسم"><input id="apU" dir="ltr" placeholder="username"><input id="apP" dir="ltr" placeholder="password (6+)"><input id="apL" type="number" min="0" value="10" title="عدد مرات الاستخدام"><button id="apA">إضافة</button></div>
+   <div class="ap-msg" id="apM"></div><div class="ap-tbl" id="apT">جاري التحميل...</div></div>`;
+  document.body.appendChild(panel); $a('apX').onclick = ()=> panel.remove();
+  const msg = t => { $a('apM').textContent = t || ''; };
+  async function load(){
+    let list = []; try{ list = await B.listUsers(); }catch(e){ $a('apT').textContent = errMsg(e); return; }
+    list.sort((a, b) => (a.active === b.active ? String(a.username).localeCompare(String(b.username)) : a.active ? 1 : -1));
+    $a('apT').innerHTML = '<table><thead><tr><th>المستخدم</th><th>الحالة</th><th>الاستخدام</th><th>الحد</th><th>إجراءات</th></tr></thead><tbody>' + list.map(u => {
+      const adm = u.role === 'admin';
+      return `<tr data-u="${esc(u.uid)}"><td><b>${esc(u.name || u.username)}</b><br><small dir="ltr">${esc(u.username)}</small></td>
+       <td>${adm ? '👑 أدمن' : u.active ? '<span class="ok">✅ مفعّل</span>' : '<span class="wt">⏳ منتظر</span>'}</td>
+       <td>${adm ? '∞' : (u.used || 0)}</td>
+       <td>${adm ? '∞' : `<input type="number" min="0" class="lim" value="${u.limit || 0}">`}</td>
+       <td>${adm ? '' : `<button data-a="save">💾 حفظ الحد</button> <button data-a="${u.active ? 'off' : 'on'}">${u.active ? '⏸ إيقاف' : '✅ تفعيل'}</button> <button data-a="reset">♻️ تصفير الاستخدام</button>`}</td></tr>`;
+    }).join('') + '</tbody></table>';
+    $a('apT').querySelectorAll('tr[data-u]').forEach(tr => tr.querySelectorAll('button').forEach(b => b.onclick = async ()=>{
+      const uid = tr.dataset.u, a = b.dataset.a, lim = Math.max(0, parseInt(tr.querySelector('.lim').value, 10) || 0);
+      try{
+        if(a === 'save') await B.updateUser(uid, { limit: lim });
+        else if(a === 'on') await B.updateUser(uid, { active:true, limit: lim || 10 });
+        else if(a === 'off') await B.updateUser(uid, { active:false });
+        else if(a === 'reset') await B.updateUser(uid, { used:0 });
+        msg('تم ✔'); load();
+      }catch(e){ msg(errMsg(e)); }
+    }));
+  }
+  $a('apA').onclick = async ()=>{
+    const u = $a('apU').value.trim(), p = $a('apP').value, n = $a('apN').value.trim() || u, l = Math.max(0, parseInt($a('apL').value, 10) || 0);
+    if(!USER_RE.test(u)){ msg('اسم المستخدم 3–20 حرف إنجليزي/أرقام'); return; }
+    if(p.length < 6){ msg('كلمة المرور 6 على الأقل'); return; }
+    try{ await B.adminCreate(u, p, n, l); msg('تمت إضافة ' + u + ' ✔'); $a('apU').value = ''; $a('apP').value = ''; $a('apN').value = ''; load(); }catch(e){ msg(errMsg(e)); }
+  };
+  load();
+}
+
+/* ---------- تشغيل ---------- */
+(async function boot(){
+  try{
+    if(!STUDIO_FIREBASE.apiKey){ showSetup(); return; }
+    B = await makeFirebaseBackend();
+    B.onAuth(route);
+  }catch(e){ gateHTML('<h2>⚠️ تعذر تحميل Firebase</h2><p class="ag-m">' + esc(e && e.message || e) + '</p>'); }
+})();
+
 </script>
 </body>
 </html>
