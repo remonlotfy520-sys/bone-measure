@@ -11,21 +11,30 @@
   #mvClose{display:none !important;}
 .mv-overlay{display:none; position:fixed; inset:0; background:#0f1412; z-index:1000001; flex-direction:column; direction:rtl; color:#f2efe6;}
   .mv-overlay.open{display:flex;}
-  .mv-overlay button{font-family:inherit; font-size:13px; padding:7px 10px; border-radius:8px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; cursor:pointer;}
+  .mv-overlay button{font-family:inherit; font-size:12px; padding:5px 8px; border-radius:7px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; cursor:pointer;}
   .mv-overlay button:hover{background:#2f3b35;}
   .mv-overlay button.active{background:#2f8f6b; border-color:#2f8f6b; color:#fff;}
-  .mv-top{display:flex; flex-wrap:wrap; gap:6px; padding:8px 10px; background:#1c2420; align-items:center; border-bottom:1px solid #2f3a34;}
-  .mv-title{font-weight:800; color:#fff; margin-inline-end:8px;}
+  .mv-top{display:flex; flex-wrap:wrap; gap:4px; padding:4px 8px 4px 42px; background:#1c2420; align-items:center; border-bottom:1px solid #2f3a34;}
+  .mv-title{font-weight:800; color:#fff; margin-inline-end:6px; font-size:13.5px;}
+  .mv-top.mv-top-hide{display:none;}
+  .mv-overlay.ltr .mv-top{padding:4px 42px 4px 8px;}
   .mv-sep{width:1px; height:22px; background:#3a463f; margin:0 2px;}
   .mv-body{flex:1; display:flex; min-height:0; position:relative;}
-  .mv-side{width:244px; flex:none; overflow-y:auto; background:#1c2420; border-inline-end:1px solid #2f3a34; padding:4px 10px 14px;}
-  .mv-sec{padding:9px 0; border-bottom:1px solid #2a352f;}
-  .mv-sh{font-size:12px; font-weight:800; color:#9fb3a8; margin-bottom:7px;}
-  .mv-tgrid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
-  .mv-tgrid button{padding:8px 4px; font-size:12.5px;}
+  .mv-side{width:196px; flex:none; overflow-y:auto; background:#1c2420; border-inline-end:1px solid #2f3a34; padding:2px 8px 12px; font-size:12px;}
+  .mv-side.mv-hide{display:none;}
+  .mv-side-head{display:flex; justify-content:space-between; align-items:center; padding:6px 0 2px; font-weight:800; font-size:12px; color:#fff;}
+  .mv-fab{position:absolute; z-index:6; width:34px; height:34px; padding:0 !important; border-radius:50% !important; font-size:15px !important; background:#2f8f6b !important; border:1px solid #3fae83 !important; box-shadow:0 2px 8px rgba(0,0,0,.5); line-height:1;}
+  #mvSideFab{top:10px; right:10px; display:none;}
+  .mv-overlay.ltr #mvSideFab{right:auto; left:10px;}
+  #mvTopFab{position:absolute; top:4px; left:6px; z-index:7; width:30px; height:30px; font-size:13px !important;}
+  .mv-overlay.ltr #mvTopFab{left:auto; right:6px;}
+  .mv-sec{padding:6px 0; border-bottom:1px solid #2a352f;}
+  .mv-sh{font-size:11.5px; font-weight:800; color:#9fb3a8; margin-bottom:5px;}
+  .mv-tgrid{display:grid; grid-template-columns:1fr 1fr; gap:4px;}
+  .mv-tgrid button{padding:5px 3px; font-size:11.5px;}
   .mv-tgrid .wide{grid-column:1/-1;}
-  .mv-row{display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:6px;}
-  .mv-lbl{color:#d9d4c2; font-size:12px;}
+  .mv-row{display:flex; gap:4px; align-items:center; flex-wrap:wrap; margin-top:4px;}
+  .mv-lbl{color:#d9d4c2; font-size:11.5px;}
   .mv-overlay input[type=number]{width:64px; padding:6px; border-radius:6px; border:1px solid #3a463f; background:#26312b; color:#f2efe6; font-family:inherit;}
   .mv-overlay input[type=color]{width:34px; height:30px; padding:0; border:1px solid #3a463f; border-radius:6px; background:none; cursor:pointer;}
   .mv-overlay input[type=range]{width:100%;}
@@ -35,7 +44,7 @@
   .mv-stage canvas{cursor:crosshair; background:#000; display:inline-block; max-width:none;}
   .mv-empty{position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; pointer-events:none; text-align:center; color:#d9d4c2;}
   .mv-empty button{pointer-events:auto; font-size:15px; padding:12px 20px; background:#2f8f6b; border-color:#2f8f6b;}
-  .mv-hint{min-height:2.8em; display:flex; align-items:center; justify-content:center; padding:7px 12px; background:#1c2420; color:#d9d4c2; font-size:13px; text-align:center; border-top:1px solid #2f3a34;}
+  .mv-hint{min-height:2.4em; display:flex; align-items:center; justify-content:center; padding:4px 10px; background:#1c2420; color:#d9d4c2; font-size:12px; text-align:center; border-top:1px solid #2f3a34;}
   .mv-stages{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .mv-stg{display:grid; grid-template-columns:62px 1fr; gap:6px 8px; align-items:center; background:#222c27; border:1px solid #2f3a34; border-radius:8px; padding:6px;}
   .mv-stg img{width:62px; height:46px; object-fit:cover; border-radius:5px; background:#000;}
@@ -64,7 +73,9 @@
   .mv-overlay.ltr .mv-side{border-inline-end:1px solid #2f3a34;}
   @media (max-width:760px){
     .mv-only-mobile{display:inline-block !important;}
-    .mv-side{position:absolute; top:0; bottom:0; right:0; z-index:5; width:min(84vw,270px); transform:translateX(100%); transition:transform .2s; box-shadow:-6px 0 20px rgba(0,0,0,.5);}
+    .mv-side.mv-hide{display:block;}
+    #mvSideFab{display:none;}
+    .mv-side{position:absolute; top:0; bottom:0; right:0; z-index:5; width:min(78vw,230px); transform:translateX(100%); transition:transform .2s; box-shadow:-6px 0 20px rgba(0,0,0,.5);}
     .mv-side.open{transform:none;}
     .mv-cmp-grid{grid-template-columns:1fr; grid-template-rows:1fr 1fr;}
     .mv-overlay.ltr .mv-side{right:auto; left:0; transform:translateX(-100%); box-shadow:6px 0 20px rgba(0,0,0,.5);}
@@ -94,8 +105,8 @@
 </head>
 <body>
 <div id="measureViewer" class="mv-overlay">
-  <div class="mv-top">
-    <button id="mvSideToggle" class="mv-only-mobile">☰ الأدوات</button>
+  <button id="mvTopFab" class="mv-fab" title="إظهار/إخفاء الشريط العلوي">▲</button>
+  <div class="mv-top" id="mvTop">
     <span class="mv-title" id="mvTitle" data-i18n-skip>📐 الرسم والقياس</span>
     <button id="mvLang" data-i18n-skip title="Switch to English">🌐 EN</button>
     <button id="mvInsert">🖼 إدراج صورة</button>
@@ -117,6 +128,7 @@
   </div>
   <div class="mv-body">
     <aside class="mv-side" id="mvSide">
+      <div class="mv-side-head"><span>🛠 الأدوات</span><button id="mvSideHide">✕ إخفاء</button></div>
       <div class="mv-sec">
         <div class="mv-sh">📏 القياس</div>
         <div class="mv-tgrid">
@@ -277,6 +289,7 @@
       </div>
     </aside>
     <div class="mv-main">
+      <button id="mvSideFab" class="mv-fab" title="إظهار/إخفاء الأدوات">🛠</button>
       <div class="mv-stage" id="mvStage"><canvas id="mvCanvas"></canvas></div>
       <div class="mv-compare" id="mvCompare" style="display:none;">
         <div class="mv-cmp-bar">
@@ -508,7 +521,11 @@ const MV_EN = {
 "عادي": "Normal",
 "سريع": "Fast",
 "تسجيل الخطوات بيتم تلقائيًا — اضغط على أي خطوة للرجوع لها": "Steps are recorded automatically — click any step to jump to it",
-"📐 زاوية بين خطين": "📐 Angle between lines"
+"📐 زاوية بين خطين": "📐 Angle between lines",
+"🛠 الأدوات": "🛠 Tools",
+"✕ إخفاء": "✕ Hide",
+"إظهار/إخفاء الأدوات": "Show/hide tools",
+"إظهار/إخفاء الشريط العلوي": "Show/hide top bar"
 };
 mv.lang = 'ar';
 try{ mv.lang = localStorage.getItem('mvLang') === 'en' ? 'en' : 'ar'; }catch(_){}
@@ -583,6 +600,35 @@ function mvSetZoom(z){
   const cv = $('mvCanvas');
   cv.style.width = (mv.img.naturalWidth * mv.zoom) + 'px';
   cv.style.height = (mv.img.naturalHeight * mv.zoom) + 'px';
+}
+// ===== إظهار/إخفاء الشريط العلوي وشريط الأدوات =====
+const mvIsMobile = ()=> window.innerWidth <= 760;
+function mvSideIsOpen(){ const sd = $('mvSide'); return mvIsMobile() ? sd.classList.contains('open') : !sd.classList.contains('mv-hide'); }
+function mvUiSave(){ try{ localStorage.setItem('mvUi', JSON.stringify({ top:!$('mvTop').classList.contains('mv-top-hide'), side:!$('mvSide').classList.contains('mv-hide') })); }catch(_){} }
+function mvUiRefit(fn){
+  const wasFit = mv.img && Math.abs(mv.zoom - mv.fit) < 0.002;
+  fn();
+  if(mv.img){ if(wasFit) mvRefit(); mvDraw(); }
+}
+function mvUiSync(){
+  $('mvSideFab').style.display = mvSideIsOpen() ? 'none' : 'block';
+  $('mvTopFab').textContent = $('mvTop').classList.contains('mv-top-hide') ? '▼' : '▲';
+}
+function mvToggleSide(force){
+  const open = force === undefined ? !mvSideIsOpen() : force, sd = $('mvSide');
+  mvUiRefit(()=>{ if(mvIsMobile()) sd.classList.toggle('open', open); else sd.classList.toggle('mv-hide', !open); });
+  mvUiSync(); if(!mvIsMobile()) mvUiSave();
+}
+function mvToggleTop(force){
+  const show = force === undefined ? $('mvTop').classList.contains('mv-top-hide') : force;
+  mvUiRefit(()=> $('mvTop').classList.toggle('mv-top-hide', !show));
+  mvUiSync(); mvUiSave();
+}
+function mvApplyUi(){
+  let st = null; try{ st = JSON.parse(localStorage.getItem('mvUi') || 'null'); }catch(_){}
+  $('mvTop').classList.toggle('mv-top-hide', !!(st && st.top === false));
+  if(mvIsMobile()) $('mvSide').classList.remove('open'); else $('mvSide').classList.toggle('mv-hide', !!(st && st.side === false));
+  mvUiSync();
 }
 function mvViewPush(){
   const st = $('mvStage'); mv.viewStack.push({ zoom:mv.zoom, sl:st.scrollLeft, st:st.scrollTop });
@@ -1107,7 +1153,7 @@ function mvSetTool(t){
   if(t !== 'crop'){ mv.cropRect = null; mv.cropTarget = null; }
   else $('mvCropTarget').textContent = mvT(mv.cropTarget ? 'الهدف: الصورة المدرجة المحددة فقط' : 'الهدف: الصورة الأساسية (الخلفية)');
   $('mvLineGrp').style.display = (t === 'line' || t === 'seg') ? 'block' : 'none';
-  if(window.innerWidth <= 760) $('mvSide').classList.remove('open');
+  if(window.innerWidth <= 760){ $('mvSide').classList.remove('open'); if(typeof mvUiSync === 'function') mvUiSync(); }
   if(t === 'rotate') mvEnsurePivot();
   if(mv.img){
     const st = $('mvStage'), wasFit = Math.abs(mv.zoom - mv.fit) < 1e-6;
@@ -1456,7 +1502,9 @@ function mvBind(){
   $('mvExportJson').onclick = mvDownloadJson;
   $('mvImportBtn').onclick = ()=> $('mvJsonFile').click();
   $('mvJsonFile').onchange = async e=>{ const f = e.target.files[0]; e.target.value = ''; if(f) await mvImportJson(f); };
-  $('mvSideToggle').onclick = ()=> $('mvSide').classList.toggle('open');
+  $('mvSideHide').onclick = ()=> mvToggleSide(false);
+  $('mvSideFab').onclick = ()=> mvToggleSide(true);
+  $('mvTopFab').onclick = ()=> mvToggleTop();
   $('mvLang').onclick = ()=>{
     mv.lang = mv.lang === 'en' ? 'ar' : 'en';
     try{ localStorage.setItem('mvLang', mv.lang); }catch(_){}
@@ -2115,7 +2163,7 @@ async function mvOpen(dataUrl){
   mv.shapes = []; mv.pending = []; mv.pendRefs = []; mvSetSel(null); mv.mmPerPx = null; mv.mouse = null; mv.pivot = null;
   mv.titleAr = dataUrl ? '📐 قياس على صورة المريض' : '📐 الرسم والقياس'; $('mvTitle').textContent = mvT(mv.titleAr);
   $('measureViewer').classList.add('open');
-  mvApplyLang(); mvRefit(); mvSetTool('line'); mvRenderStages(); mvDraw(); mvHReset();
+  mvApplyLang(); mvRefit(); mvSetTool('line'); mvRenderStages(); mvDraw(); mvHReset(); mvApplyUi();
 }
 function openMeasureViewer(dataUrl){
   if(!dataUrl){ showToast(mvT('الصورة دي متعذر تحميلها'), true); return; }
