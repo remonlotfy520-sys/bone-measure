@@ -2452,6 +2452,357 @@ function openMeasureViewer(dataUrl){
 }
 function openMeasureStudio(){ mvOpen(null); }
 
+/* ================= قسم الصور: شبكة + معاينة + محرر ================= */
+let _ipItems = [], _ipIdx = 0;
+function ensureImgPreview(){
+  let o = $('ipOv'); if(o) return o;
+  o = document.createElement('div'); o.id = 'ipOv'; o.className = 'ip-ov';
+  o.innerHTML = `<div class="ip-top"><span class="ip-t" id="ipTitle"></span><button type="button" id="ipClose">✕ إغلاق</button></div>
+    <div class="ip-stage"><button type="button" class="ip-nav ip-prev" id="ipPrev">›</button><img id="ipImg" alt=""><button type="button" class="ip-nav ip-next" id="ipNext">‹</button></div>
+    <div class="ip-bar">
+      <button type="button" class="ip-pri" id="ipMeasure">📏 قياس</button>
+      <button type="button" id="ipEdit">✏️ تعديل</button>
+      <button type="button" id="ipSave">💾 حفظ</button>
+      <button type="button" class="ip-del" id="ipDel">🗑 حذف</button>
+    </div>`;
+  document.body.appendChild(o);
+  $('ipClose').onclick = ipClose;
+  $('ipPrev').onclick = ()=> ipGo(-1); $('ipNext').onclick = ()=> ipGo(1);
+  $('ipMeasure').onclick = ()=>{ const im = _ipItems[_ipIdx]; if(!im) return; ipClose(); openMeasureViewer(im.dataUrl); };
+  $('ipEdit').onclick = ()=>{ const im = _ipItems[_ipIdx]; if(!im || !im.dataUrl){ showToast('الصورة دي متعذر تحميلها', true); return; } ieOpen(im); };
+  $('ipSave').onclick = ()=>{
+    const im = _ipItems[_ipIdx]; if(!im || !im.dataUrl){ showToast('الصورة دي متعذر تحميلها', true); return; }
+    const a = document.createElement('a'); a.href = im.dataUrl;
+    a.download = `${String(im.ImageDate || '').slice(0,10) || 'صورة'}-${im.ImageID}.jpg`;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  $('ipDel').onclick = async ()=>{ const im = _ipItems[_ipIdx]; if(!im) return; ipClose(); await deleteImageEntry(im.ImageID); };
+  document.addEventListener('keydown', e=>{
+    if(!o.classList.contains('open') || $('ieOv') && $('ieOv').classList.contains('open')) return;
+    if(e.key === 'Escape') ipClose(); else if(e.key === 'ArrowLeft') ipGo(1); else if(e.key === 'ArrowRight') ipGo(-1);
+  });
+  return o;
+}
+function ipShow(){
+  const im = _ipItems[_ipIdx]; if(!im) return;
+  $('ipImg').src = im.dataUrl || '';
+  $('ipTitle').textContent = `${(im.SessionNote ? im.SessionNote + ' - ' : '')}${String(im.ImageDate || '').slice(0,10)}  (${_ipIdx + 1}/${_ipItems.length})`;
+  const multi = _ipItems.length > 1; $('ipPrev').style.display = $('ipNext').style.display = multi ? '' : 'none';
+}
+function ipGo(d){ if(_ipItems.length < 2) return; _ipIdx = (_ipIdx + d + _ipItems.length) % _ipItems.length; ipShow(); }
+function ipClose(){ $('ipOv').classList.remove('open'); }
+function openImagePreview(items, im){
+  ensureImgPreview();
+  _ipItems = items; _ipIdx = Math.max(0, items.findIndex(x => String(x.ImageID) === String(im.ImageID)));
+  ipShow(); $('ipOv').classList.add('open');
+}
+
+/* ---------- محرر الصورة ---------- */
+const IE = { im:null, base:null, filtered:null, dirty:true, adj:null, texts:[], strokes:[], sel:-1, tool:'crop', crop:null, aspect:0, drag:null, penMode:'free', hist:[], cv:null };
+const IE_ADJ0 = { brightness:0, contrast:0, saturation:0, hue:0, gamma:0, sharpen:0, gray:false, invert:false };
+const IE_FONTS = ['Cairo','Tajawal','Arial','Times New Roman','Courier New','Georgia','Tahoma','Verdana'];
+function ieClone(c){ const n = document.createElement('canvas'); n.width = c.width; n.height = c.height; n.getContext('2d').drawImage(c, 0, 0); return n; }
+function ieNeutral(a){ return !a.brightness && !a.contrast && !a.saturation && !a.hue && !a.gamma && !a.sharpen && !a.gray && !a.invert; }
+function ieFilter(src, a){
+  const c = ieClone(src); if(ieNeutral(a)) return c;
+  const w = c.width, h = c.height, ctx = c.getContext('2d'), id = ctx.getImageData(0,0,w,h), d = id.data;
+  const g = Math.pow(2, -a.gamma / 50), ct = 1 + a.contrast / 100, br = a.brightness * 1.6;
+  const lut = new Uint8ClampedArray(256);
+  for(let i = 0; i < 256; i++){ let v = 255 * Math.pow(i / 255, g); v = (v - 128) * ct + 128 + br; lut[i] = v; }
+  const sat = a.gray ? 0 : 1 + a.saturation / 100;
+  const hr = a.hue * Math.PI / 180, cs = Math.cos(hr), sn = Math.sin(hr);
+  const m = [0.213 + cs*0.787 - sn*0.213, 0.715 - cs*0.715 - sn*0.715, 0.072 - cs*0.072 + sn*0.928,
+             0.213 - cs*0.213 + sn*0.143, 0.715 + cs*0.285 + sn*0.140, 0.072 - cs*0.072 - sn*0.283,
+             0.213 - cs*0.213 - sn*0.787, 0.715 - cs*0.715 + sn*0.715, 0.072 + cs*0.928 + sn*0.072];
+  const useHue = !!a.hue, inv = a.invert;
+  for(let i = 0; i < d.length; i += 4){
+    let r = lut[d[i]], gg = lut[d[i+1]], b = lut[d[i+2]];
+    if(useHue){ const r2 = m[0]*r + m[1]*gg + m[2]*b, g2 = m[3]*r + m[4]*gg + m[5]*b, b2 = m[6]*r + m[7]*gg + m[8]*b; r = r2; gg = g2; b = b2; }
+    if(sat !== 1){ const y = 0.299*r + 0.587*gg + 0.114*b; r = y + (r - y)*sat; gg = y + (gg - y)*sat; b = y + (b - y)*sat; }
+    if(inv){ r = 255 - r; gg = 255 - gg; b = 255 - b; }
+    d[i] = r; d[i+1] = gg; d[i+2] = b;
+  }
+  if(a.sharpen > 0){
+    const k = a.sharpen / 100 * 1.6, o = new Uint8ClampedArray(d);
+    for(let y = 1; y < h - 1; y++) for(let x = 1; x < w - 1; x++){
+      const p = (y*w + x) * 4;
+      for(let ch = 0; ch < 3; ch++){
+        const q = p + ch;
+        const blur = (o[q-4] + o[q+4] + o[q-w*4] + o[q+w*4] + o[q-w*4-4] + o[q-w*4+4] + o[q+w*4-4] + o[q+w*4+4] + o[q]) / 9;
+        d[q] = o[q] + k * (o[q] - blur);
+      }
+    }
+  }
+  ctx.putImageData(id, 0, 0); return c;
+}
+function ieDrawArrow(ctx, p, q, w){
+  ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+  const ang = Math.atan2(q.y - p.y, q.x - p.x), hl = Math.max(12, w * 4);
+  ctx.beginPath(); ctx.moveTo(q.x, q.y);
+  ctx.lineTo(q.x - hl * Math.cos(ang - 0.45), q.y - hl * Math.sin(ang - 0.45));
+  ctx.moveTo(q.x, q.y); ctx.lineTo(q.x - hl * Math.cos(ang + 0.45), q.y - hl * Math.sin(ang + 0.45)); ctx.stroke();
+}
+function ieTextFont(t){ return `${t.bold ? '700 ' : '400 '}${t.size}px "${t.font}", sans-serif`; }
+function ieRenderWork(){
+  if(IE.dirty){ IE.filtered = ieFilter(IE.base, IE.adj); IE.dirty = false; }
+  const w = IE.filtered.width, h = IE.filtered.height, work = document.createElement('canvas');
+  work.width = w; work.height = h; const ctx = work.getContext('2d');
+  ctx.drawImage(IE.filtered, 0, 0);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  IE.strokes.forEach(s=>{
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.width;
+    if(s.type === 'free'){ ctx.beginPath(); s.pts.forEach((p,i)=> i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); if(s.pts.length === 1) ctx.lineTo(s.pts[0].x + .1, s.pts[0].y); ctx.stroke(); }
+    else if(s.type === 'line'){ ctx.beginPath(); ctx.moveTo(s.pts[0].x, s.pts[0].y); ctx.lineTo(s.pts[1].x, s.pts[1].y); ctx.stroke(); }
+    else if(s.type === 'arrow') ieDrawArrow(ctx, s.pts[0], s.pts[1], s.width);
+  });
+  IE.texts.forEach(t=>{
+    ctx.font = ieTextFont(t); ctx.textBaseline = 'top'; ctx.direction = 'rtl'; ctx.textAlign = 'center';
+    const lines = String(t.text).split('\n'), lh = t.size * 1.25;
+    let mw = 0; lines.forEach(l=> mw = Math.max(mw, ctx.measureText(l).width));
+    t._w = mw + 10; t._h = lines.length * lh + 6; t._x = t.x - t._w / 2; t._y = t.y - t._h / 2;
+    if(t.bg){ ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(t._x, t._y, t._w, t._h); }
+    ctx.fillStyle = t.color;
+    lines.forEach((l,i)=> ctx.fillText(l, t.x, t._y + 3 + i * lh));
+  });
+  return work;
+}
+function ieRender(){
+  const work = ieRenderWork(), cv = IE.cv;
+  if(cv.width !== work.width || cv.height !== work.height){ cv.width = work.width; cv.height = work.height; }
+  const ctx = cv.getContext('2d'); ctx.drawImage(work, 0, 0);
+  if(IE.tool === 'text' && IE.sel >= 0 && IE.texts[IE.sel]){
+    const t = IE.texts[IE.sel]; ctx.save(); ctx.strokeStyle = '#3fae83'; ctx.setLineDash([6,4]); ctx.lineWidth = Math.max(1, cv.width / 500);
+    ctx.strokeRect(t._x, t._y, t._w, t._h); ctx.restore();
+  }
+  if(IE.tool === 'crop' && IE.crop){
+    const c = IE.crop; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.55)';
+    ctx.fillRect(0, 0, cv.width, c.y); ctx.fillRect(0, c.y + c.h, cv.width, cv.height - c.y - c.h);
+    ctx.fillRect(0, c.y, c.x, c.h); ctx.fillRect(c.x + c.w, c.y, cv.width - c.x - c.w, c.h);
+    const u = Math.max(1, cv.width / 600);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 * u; ctx.strokeRect(c.x, c.y, c.w, c.h);
+    ctx.lineWidth = u; ctx.strokeStyle = 'rgba(255,255,255,.45)';
+    for(let i = 1; i < 3; i++){ ctx.beginPath(); ctx.moveTo(c.x + c.w*i/3, c.y); ctx.lineTo(c.x + c.w*i/3, c.y + c.h); ctx.moveTo(c.x, c.y + c.h*i/3); ctx.lineTo(c.x + c.w, c.y + c.h*i/3); ctx.stroke(); }
+    ctx.fillStyle = '#3fae83'; const hs = 7 * u;
+    ieHandles(c).forEach(h=>{ const ox = h.n.indexOf('w') >= 0 ? hs : h.n.indexOf('e') >= 0 ? -hs : 0, oy = h.n.indexOf('n') >= 0 ? hs : h.n.indexOf('s') >= 0 ? -hs : 0; ctx.fillRect(h.x + ox - hs, h.y + oy - hs, hs * 2, hs * 2); });
+    ctx.restore();
+  }
+}
+function ieHandles(c){
+  const xm = c.x + c.w / 2, ym = c.y + c.h / 2, xr = c.x + c.w, yb = c.y + c.h;
+  return [{n:'nw',x:c.x,y:c.y},{n:'n',x:xm,y:c.y},{n:'ne',x:xr,y:c.y},{n:'e',x:xr,y:ym},{n:'se',x:xr,y:yb},{n:'s',x:xm,y:yb},{n:'sw',x:c.x,y:yb},{n:'w',x:c.x,y:ym}];
+}
+function ieInitCrop(){ IE.cropTouched = false; IE.crop = { x: IE.base.width * .04, y: IE.base.height * .04, w: IE.base.width * .92, h: IE.base.height * .92 }; if(IE.aspect) ieFixAspect('se'); }
+function ieFixAspect(anchor){
+  const c = IE.crop, W = IE.base.width, H = IE.base.height; if(!IE.aspect) return;
+  let w = c.w, h = w / IE.aspect; if(h > H){ h = H; w = h * IE.aspect; } if(w > W){ w = W; h = w / IE.aspect; }
+  if(anchor && anchor.indexOf('w') >= 0) c.x = c.x + c.w - w; if(anchor && anchor.indexOf('n') >= 0) c.y = c.y + c.h - h;
+  c.w = w; c.h = h; c.x = Math.max(0, Math.min(W - c.w, c.x)); c.y = Math.max(0, Math.min(H - c.h, c.y));
+}
+function iePt(e){ const r = IE.cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * IE.cv.width / r.width, y: (e.clientY - r.top) * IE.cv.height / r.height }; }
+function ieHist(){ IE.hist.push({ base: ieClone(IE.base), texts: JSON.parse(JSON.stringify(IE.texts)), strokes: JSON.parse(JSON.stringify(IE.strokes)) }); if(IE.hist.length > 15) IE.hist.shift(); }
+function ieUndoGeom(){
+  const h = IE.hist.pop(); if(!h){ showToast('مفيش حاجة للتراجع عنها'); return; }
+  IE.base = h.base; IE.texts = h.texts; IE.strokes = h.strokes; IE.dirty = true; IE.sel = -1; ieInitCrop(); ieRender();
+}
+function ieTransformPts(fn){ IE.texts.forEach(t=>{ const p = fn({x:t.x,y:t.y}); t.x = p.x; t.y = p.y; }); IE.strokes.forEach(s=> s.pts = s.pts.map(fn)); }
+function ieApplyCrop(){
+  const c = IE.crop; if(!c || c.w < 8 || c.h < 8) return; ieHist(); IE.cropTouched = false;
+  const n = document.createElement('canvas'); n.width = Math.round(c.w); n.height = Math.round(c.h);
+  n.getContext('2d').drawImage(IE.base, Math.round(c.x), Math.round(c.y), n.width, n.height, 0, 0, n.width, n.height);
+  const ox = Math.round(c.x), oy = Math.round(c.y); ieTransformPts(p => ({ x: p.x - ox, y: p.y - oy }));
+  IE.base = n; IE.dirty = true; ieInitCrop(); ieRender();
+}
+function ieRotate(dir){
+  ieHist(); const b = IE.base, n = document.createElement('canvas'), W = b.width, H = b.height; n.width = H; n.height = W;
+  const x = n.getContext('2d'); x.translate(H / 2, W / 2); x.rotate(dir * Math.PI / 2); x.drawImage(b, -W / 2, -H / 2);
+  ieTransformPts(p => dir > 0 ? { x: H - p.y, y: p.x } : { x: p.y, y: W - p.x });
+  IE.base = n; IE.dirty = true; ieInitCrop(); ieRender();
+}
+function ieFlip(horizontal){
+  ieHist(); const b = IE.base, n = document.createElement('canvas'), W = b.width, H = b.height; n.width = W; n.height = H;
+  const x = n.getContext('2d'); if(horizontal){ x.translate(W, 0); x.scale(-1, 1); } else { x.translate(0, H); x.scale(1, -1); }
+  x.drawImage(b, 0, 0); ieTransformPts(p => horizontal ? { x: W - p.x, y: p.y } : { x: p.x, y: H - p.y });
+  IE.base = n; IE.dirty = true; ieInitCrop(); ieRender();
+}
+function ieSelText(){ return IE.sel >= 0 ? IE.texts[IE.sel] : null; }
+function ieSyncTextUi(){
+  const t = ieSelText(), box = $('ieTextBox'); box.style.display = t ? '' : 'none'; if(!t) return;
+  $('ieTxt').value = t.text; $('ieTxtSize').value = t.size; $('ieTxtSizeV').textContent = t.size; $('ieTxtColor').value = t.color; $('ieTxtFont').value = t.font;
+  $('ieTxtBold').classList.toggle('on', !!t.bold); $('ieTxtBg').classList.toggle('on', !!t.bg);
+}
+function ieAddText(){
+  const s = Math.round(Math.max(18, IE.base.width / 14));
+  IE.texts.push({ text: 'نص', x: IE.base.width / 2, y: IE.base.height / 2, size: s, color: '#ffffff', font: 'Cairo', bold: true, bg: false });
+  IE.sel = IE.texts.length - 1; ieSyncTextUi(); ieRender(); $('ieTxt').focus(); $('ieTxt').select();
+}
+function ieSetTool(t){
+  if(IE.tool === 'crop' && t !== 'crop' && IE.cropTouched) ieApplyCrop();
+  IE.tool = t; IE.drag = null;
+  document.querySelectorAll('#ieTabs button').forEach(b=> b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('.ie-pane').forEach(p=> p.classList.toggle('on', p.dataset.t === t));
+  if(t === 'crop' && !IE.crop) ieInitCrop();
+  IE.cv.style.cursor = t === 'crop' ? 'crosshair' : t === 'pen' ? 'crosshair' : 'default';
+  ieRender();
+}
+function ieBuild(){
+  let o = $('ieOv'); if(o) return o;
+  o = document.createElement('div'); o.id = 'ieOv'; o.className = 'ie-ov';
+  const sl = (id, lab, min, max) => `<div class="ie-row"><label>${lab}</label><input type="range" id="${id}" min="${min}" max="${max}" value="0"><span class="ie-v" id="${id}V">0</span></div>`;
+  o.innerHTML = `<div class="ie-top"><span class="ie-t">✏️ تعديل الصورة</span><button type="button" id="ieUndo">↩ تراجع</button><button type="button" id="ieReset">⟲ الأصل</button><button type="button" id="ieClose">✕ إلغاء</button></div>
+  <div class="ie-main"><div class="ie-cv"><canvas id="ieCanvas"></canvas></div>
+   <div class="ie-panel"><div class="ie-tabs" id="ieTabs"><button type="button" data-t="crop">✂️ قص</button><button type="button" data-t="color">🎨 ألوان</button><button type="button" data-t="text">🔤 نص</button><button type="button" data-t="pen">✏️ رسم</button></div>
+    <div class="ie-pane" data-t="crop">
+      <div class="ie-note">اسحب الإطار أو أطرافه لتحديد القص. بيتطبق تلقائي لما تحفظ أو تنتقل لتبويب تاني، أو اضغط "تطبيق القص" لو عايز تكمل تعديل بعده.</div>
+      <div class="ie-grid2" id="ieAspect"><button type="button" class="ie-b on" data-a="0">حر</button><button type="button" class="ie-b" data-a="1">1:1</button><button type="button" class="ie-b" data-a="1.3333">4:3</button><button type="button" class="ie-b" data-a="0.75">3:4</button><button type="button" class="ie-b" data-a="1.7778">16:9</button><button type="button" class="ie-b" data-a="0.5625">9:16</button></div>
+      <button type="button" class="ie-b ie-pri" id="ieCropGo" style="width:100%; background:var(--teal); border-color:var(--teal);">✓ تطبيق القص</button>
+      <div class="ie-grid2" style="margin-top:12px;"><button type="button" class="ie-b" id="ieRotL">⟲ تدوير يسار</button><button type="button" class="ie-b" id="ieRotR">⟳ تدوير يمين</button><button type="button" class="ie-b" id="ieFlipH">⇋ قلب أفقي</button><button type="button" class="ie-b" id="ieFlipV">⇅ قلب رأسي</button></div>
+    </div>
+    <div class="ie-pane" data-t="color">
+      ${sl('ieBr','سطوع',-100,100)}${sl('ieCt','تباين',-100,100)}${sl('ieGm','إضاءة الظلال',-100,100)}${sl('ieSa','تشبع الألوان',-100,100)}${sl('ieHu','درجة اللون',-180,180)}${sl('ieSh','حدة (Sharpen)',0,100)}
+      <div class="ie-grid2"><button type="button" class="ie-b" id="ieGray">⚫ أبيض وأسود</button><button type="button" class="ie-b" id="ieInv">◐ عكس (نيجاتيف)</button></div>
+      <button type="button" class="ie-b" id="ieAdjReset" style="width:100%;">إعادة ضبط الألوان</button>
+    </div>
+    <div class="ie-pane" data-t="text">
+      <button type="button" class="ie-b" id="ieAddTxt" style="width:100%; background:var(--teal); border-color:var(--teal);">+ إضافة نص</button>
+      <div class="ie-note">اضغط على النص في الصورة لتحديده، واسحبه لتحريكه.</div>
+      <div id="ieTextBox" style="display:none;">
+        <textarea id="ieTxt" rows="2" placeholder="اكتب النص..."></textarea>
+        <div class="ie-row"><label>الخط</label><select id="ieTxtFont">${IE_FONTS.map(f=>`<option value="${f}">${f}</option>`).join('')}</select></div>
+        <div class="ie-row"><label>الحجم</label><input type="range" id="ieTxtSize" min="10" max="200" value="40"><span class="ie-v" id="ieTxtSizeV">40</span></div>
+        <div class="ie-row"><label>اللون</label><input type="color" id="ieTxtColor" value="#ffffff" style="width:50px; height:32px; border:0; background:none;"></div>
+        <div class="ie-grid2"><button type="button" class="ie-b" id="ieTxtBold">B عريض</button><button type="button" class="ie-b" id="ieTxtBg">▮ خلفية</button></div>
+        <button type="button" class="ie-b" id="ieTxtDel" style="width:100%; color:#ff9d9d;">🗑 حذف النص</button>
+      </div>
+    </div>
+    <div class="ie-pane" data-t="pen">
+      <div class="ie-grid2" id="iePenMode"><button type="button" class="ie-b on" data-m="free">✏️ حر</button><button type="button" class="ie-b" data-m="line">╱ خط</button><button type="button" class="ie-b" data-m="arrow">➜ سهم</button></div>
+      <div class="ie-row"><label>اللون</label><input type="color" id="iePenColor" value="#ff3b30" style="width:50px; height:32px; border:0; background:none;"></div>
+      <div class="ie-row"><label>السمك</label><input type="range" id="iePenW" min="1" max="30" value="4"><span class="ie-v" id="iePenWV">4</span></div>
+      <div class="ie-grid2"><button type="button" class="ie-b" id="iePenUndo">↩ آخر رسمة</button><button type="button" class="ie-b" id="iePenClear" style="color:#ff9d9d;">مسح الرسم</button></div>
+    </div>
+   </div></div>
+  <div class="ie-foot"><button type="button" class="ie-pri" id="ieSaveNew">💾 حفظ كصورة جديدة</button><button type="button" id="ieSaveRep">🔁 استبدال الأصلية</button><button type="button" id="ieDl">⬇ تنزيل</button></div>`;
+  document.body.appendChild(o);
+  IE.cv = $('ieCanvas');
+  $('ieClose').onclick = ()=>{ if(IE.dirtyEdits() && !confirm('إلغاء التعديلات؟')) return; o.classList.remove('open'); };
+  $('ieReset').onclick = ()=>{ if(!confirm('الرجوع للصورة الأصلية ومسح كل التعديلات؟')) return; ieLoadOriginal(); };
+  $('ieUndo').onclick = ieUndoGeom;
+  document.querySelectorAll('#ieTabs button').forEach(b=> b.onclick = ()=> ieSetTool(b.dataset.t));
+  document.querySelectorAll('#ieAspect button').forEach(b=> b.onclick = ()=>{
+    document.querySelectorAll('#ieAspect button').forEach(x=> x.classList.toggle('on', x === b));
+    IE.aspect = Number(b.dataset.a) || 0; if(IE.aspect) ieFixAspect('se'); ieRender();
+  });
+  $('ieCropGo').onclick = ieApplyCrop; $('ieRotL').onclick = ()=> ieRotate(-1); $('ieRotR').onclick = ()=> ieRotate(1);
+  $('ieFlipH').onclick = ()=> ieFlip(true); $('ieFlipV').onclick = ()=> ieFlip(false);
+  [['ieBr','brightness'],['ieCt','contrast'],['ieGm','gamma'],['ieSa','saturation'],['ieHu','hue'],['ieSh','sharpen']].forEach(([id,k])=>{
+    $(id).oninput = ()=>{ IE.adj[k] = Number($(id).value); $(id + 'V').textContent = $(id).value; IE.dirty = true; ieSched(); };
+  });
+  $('ieGray').onclick = ()=>{ IE.adj.gray = !IE.adj.gray; $('ieGray').classList.toggle('on', IE.adj.gray); IE.dirty = true; ieSched(); };
+  $('ieInv').onclick = ()=>{ IE.adj.invert = !IE.adj.invert; $('ieInv').classList.toggle('on', IE.adj.invert); IE.dirty = true; ieSched(); };
+  $('ieAdjReset').onclick = ()=>{ IE.adj = Object.assign({}, IE_ADJ0); ieSyncAdjUi(); IE.dirty = true; ieRender(); };
+  $('ieAddTxt').onclick = ieAddText;
+  $('ieTxt').oninput = ()=>{ const t = ieSelText(); if(t){ t.text = $('ieTxt').value || ' '; ieRender(); } };
+  $('ieTxtFont').onchange = ()=>{ const t = ieSelText(); if(t){ t.font = $('ieTxtFont').value; ieRender(); } };
+  $('ieTxtSize').oninput = ()=>{ const t = ieSelText(); if(t){ t.size = Number($('ieTxtSize').value); $('ieTxtSizeV').textContent = t.size; ieRender(); } };
+  $('ieTxtColor').oninput = ()=>{ const t = ieSelText(); if(t){ t.color = $('ieTxtColor').value; ieRender(); } };
+  $('ieTxtBold').onclick = ()=>{ const t = ieSelText(); if(t){ t.bold = !t.bold; ieSyncTextUi(); ieRender(); } };
+  $('ieTxtBg').onclick = ()=>{ const t = ieSelText(); if(t){ t.bg = !t.bg; ieSyncTextUi(); ieRender(); } };
+  $('ieTxtDel').onclick = ()=>{ if(IE.sel >= 0){ IE.texts.splice(IE.sel, 1); IE.sel = -1; ieSyncTextUi(); ieRender(); } };
+  document.querySelectorAll('#iePenMode button').forEach(b=> b.onclick = ()=>{ IE.penMode = b.dataset.m; document.querySelectorAll('#iePenMode button').forEach(x=> x.classList.toggle('on', x === b)); });
+  $('iePenW').oninput = ()=> $('iePenWV').textContent = $('iePenW').value;
+  $('iePenUndo').onclick = ()=>{ IE.strokes.pop(); ieRender(); };
+  $('iePenClear').onclick = ()=>{ IE.strokes = []; ieRender(); };
+  $('ieSaveNew').onclick = ()=> ieSave('new'); $('ieSaveRep').onclick = ()=> ieSave('replace'); $('ieDl').onclick = ()=> ieSave('download');
+  IE.dirtyEdits = ()=> IE.hist.length || IE.texts.length || IE.strokes.length || !ieNeutral(IE.adj);
+  const cv = IE.cv;
+  cv.addEventListener('pointerdown', e=>{
+    const p = iePt(e); cv.setPointerCapture(e.pointerId);
+    if(IE.tool === 'crop' && IE.crop){
+      const c = IE.crop, hs = Math.max(12, cv.width / 45);
+      const h = ieHandles(c).find(h => Math.abs(h.x - p.x) < hs * 1.6 && Math.abs(h.y - p.y) < hs * 1.6);
+      if(h) IE.drag = { k:'resize', n:h.n, sx:p.x, sy:p.y, c0:Object.assign({}, c) };
+      else if(p.x > c.x && p.x < c.x + c.w && p.y > c.y && p.y < c.y + c.h) IE.drag = { k:'move', sx:p.x, sy:p.y, c0:Object.assign({}, c) };
+      else { IE.crop = { x:p.x, y:p.y, w:1, h:1 }; IE.drag = { k:'resize', n:'se', sx:p.x, sy:p.y, c0:Object.assign({}, IE.crop) }; }
+    } else if(IE.tool === 'text'){
+      let hit = -1; for(let i = IE.texts.length - 1; i >= 0; i--){ const t = IE.texts[i]; if(p.x >= t._x && p.x <= t._x + t._w && p.y >= t._y && p.y <= t._y + t._h){ hit = i; break; } }
+      IE.sel = hit; ieSyncTextUi();
+      if(hit >= 0) IE.drag = { k:'text', dx: IE.texts[hit].x - p.x, dy: IE.texts[hit].y - p.y };
+      ieRender();
+    } else if(IE.tool === 'pen'){
+      const s = { type: IE.penMode, color: $('iePenColor').value, width: Number($('iePenW').value) * Math.max(1, cv.width / 800), pts: [p] };
+      if(s.type !== 'free') s.pts.push(p);
+      IE.strokes.push(s); IE.drag = { k:'pen', s }; ieRender();
+    }
+  });
+  cv.addEventListener('pointermove', e=>{
+    const d = IE.drag; if(!d) return; const p = iePt(e), W = cv.width, H = cv.height;
+    if(d.k === 'move'){ const c = IE.crop; c.x = Math.max(0, Math.min(W - c.w, d.c0.x + p.x - d.sx)); c.y = Math.max(0, Math.min(H - c.h, d.c0.y + p.y - d.sy)); }
+    else if(d.k === 'resize'){
+      const c0 = d.c0, n = d.n; let l = c0.x, t = c0.y, r = c0.x + c0.w, b = c0.y + c0.h;
+      if(n.indexOf('w') >= 0) l = Math.max(0, Math.min(p.x, r - 10)); if(n.indexOf('e') >= 0) r = Math.min(W, Math.max(p.x, l + 10));
+      if(n.indexOf('n') >= 0) t = Math.max(0, Math.min(p.y, b - 10)); if(n.indexOf('s') >= 0) b = Math.min(H, Math.max(p.y, t + 10));
+      if(d.n === 'se' && c0.w === 1 && c0.h === 1){ l = Math.min(d.sx, p.x); t = Math.min(d.sy, p.y); r = Math.max(d.sx, p.x); b = Math.max(d.sy, p.y); }
+      IE.crop = { x:l, y:t, w:Math.max(2, r - l), h:Math.max(2, b - t) };
+      if(IE.aspect){ ieFixAspect(n); }
+    }
+    else if(d.k === 'text'){ const t = IE.texts[IE.sel]; t.x = p.x + d.dx; t.y = p.y + d.dy; }
+    else if(d.k === 'pen'){ if(d.s.type === 'free') d.s.pts.push(p); else d.s.pts[1] = p; }
+    if(d.k === 'move' || d.k === 'resize') IE.cropTouched = true;
+    ieSched();
+  });
+  const end = ()=>{ IE.drag = null; };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  return o;
+}
+let _ieRaf = 0;
+function ieSched(){ if(_ieRaf) return; _ieRaf = requestAnimationFrame(()=>{ _ieRaf = 0; ieRender(); }); }
+function ieSyncAdjUi(){
+  [['ieBr','brightness'],['ieCt','contrast'],['ieGm','gamma'],['ieSa','saturation'],['ieHu','hue'],['ieSh','sharpen']].forEach(([id,k])=>{ $(id).value = IE.adj[k]; $(id + 'V').textContent = IE.adj[k]; });
+  $('ieGray').classList.toggle('on', !!IE.adj.gray); $('ieInv').classList.toggle('on', !!IE.adj.invert);
+}
+function ieLoadOriginal(){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0);
+      IE.base = c; IE.adj = Object.assign({}, IE_ADJ0); IE.texts = []; IE.strokes = []; IE.sel = -1; IE.hist = []; IE.dirty = true; IE.crop = null; IE.aspect = 0;
+      document.querySelectorAll('#ieAspect button').forEach(x=> x.classList.toggle('on', x.dataset.a === '0'));
+      ieSyncAdjUi(); ieSyncTextUi(); ieInitCrop(); ieRender(); res(true);
+    };
+    img.onerror = ()=>{ showToast('تعذر فتح الصورة للتعديل', true); res(false); };
+    img.src = IE.im.dataUrl;
+  });
+}
+async function ieOpen(im){
+  ieBuild(); IE.im = im;
+  if(document.fonts && document.fonts.load){ try{ await Promise.all(['Cairo','Tajawal'].map(f => document.fonts.load('700 20px "' + f + '"', 'نص'))); }catch(_){} }
+  const ok = await ieLoadOriginal(); if(!ok) return;
+  $('ieOv').classList.add('open'); ieSetTool('crop');
+}
+async function ieSave(mode){
+  if(IE.tool === 'crop' && IE.cropTouched) ieApplyCrop();
+  const old = IE.tool; IE.tool = 'none'; const work = ieRenderWork(); IE.tool = old;
+  const url = work.toDataURL('image/jpeg', 0.92);
+  if(mode === 'download'){
+    const a = document.createElement('a'); a.href = url; a.download = `${String(IE.im.ImageDate || '').slice(0,10) || 'صورة'}-معدلة.jpg`;
+    document.body.appendChild(a); a.click(); a.remove(); return;
+  }
+  if(!currentPatientId || String(currentPatientId).startsWith('temp_')){ showToast('احفظ بيانات المريض الأول', true); return; }
+  if(navigator.onLine === false){ showToast('رفع الصور محتاج نت - جرب تاني وانت أونلاين', true); return; }
+  if(mode === 'replace' && !confirm('استبدال الصورة الأصلية بالنسخة المعدلة؟ (الأصلية هتتحذف)')) return;
+  const btns = ['ieSaveNew','ieSaveRep','ieDl'].map($); btns.forEach(b=> b.disabled = true);
+  showToast('جاري الحفظ...');
+  try{
+    const res = await uploadPatientImageRemote(currentPatientId, url.split(',')[1], 'image/jpeg', IE.im.SessionNote || '', IE.im.ImageDate || '');
+    if(res.error){ showToast(res.error, true); btns.forEach(b=> b.disabled = false); return; }
+    if(mode === 'replace'){ try{ await deletePatientImageRemote(IE.im.ImageID); }catch(_){ showToast('اتحفظت المعدلة لكن تعذر حذف الأصلية', true); } }
+    showToast(mode === 'replace' ? 'اتبدلت الصورة ✓' : 'اتحفظت كصورة جديدة ✓');
+    $('ieOv').classList.remove('open'); ipClose();
+    await loadImages(currentPatientId, currentImagesTargetElId);
+  }catch(err){ showToast('حصل خطأ أثناء الحفظ', true); }
+  btns.forEach(b=> b.disabled = false);
+}
+
 
 window.__startStudio = openMeasureStudio;
 try{ mvApplyTheme(localStorage.getItem('mvTheme') || 'green'); }catch(_){}
@@ -2477,6 +2828,10 @@ service cloud.firestore {
         && exists(/databases/$(db)/documents/users/$(request.auth.uid))
         && me().role == 'admin' && me().active == true;
     }
+    match /pwver/{u} {
+      allow get: if true;
+      allow write: if isAdmin();
+    }
     match /users/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
       allow create: if isAdmin() || (request.auth != null && request.auth.uid == uid
@@ -2493,12 +2848,13 @@ service cloud.firestore {
 }`;
 const $a = id => document.getElementById(id);
 const esc = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const toEmail = u => u.toLowerCase() + '@studio.app';
+const toEmail = (u, v) => u.toLowerCase() + (v && v > 1 ? '+' + v : '') + '@studio.app';
 const USER_RE = /^[a-z0-9._-]{3,20}$/i;
 function errMsg(e){
   const c = (e && (e.code || e.message)) || '';
+  if(e && e.code === 'pw-rules') return 'لازم تحدّث قواعد Firestore (فيها قسم pwver الجديد) من تبويب Rules ثم Publish';
   if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) return 'اسم المستخدم أو كلمة المرور غلط';
-  if(/email-already-in-use/.test(c)) return 'اسم المستخدم ده مستخدم قبل كده';
+  if(/email-already-in-use/.test(c)) return 'اسم المستخدم ده مستخدم قبل كده (لو كان محذوف: استرجعه من «عرض المحذوفين»)';
   if(/weak-password/.test(c)) return 'كلمة المرور ضعيفة (6 حروف/أرقام على الأقل)';
   if(/too-many-requests/.test(c)) return 'محاولات كتير — استنى شوية وجرب تاني';
   if(/network/.test(c)) return 'مفيش اتصال بالإنترنت';
@@ -2515,7 +2871,8 @@ async function makeFirebaseBackend(){
   const ud = uid => Fs.doc(db, 'users', uid);
   return {
     onAuth(cb){ Au.onAuthStateChanged(auth, u => cb(u ? { uid:u.uid, username:(u.email || '').split('@')[0] } : null)); },
-    async signIn(u, p){ await Au.signInWithEmailAndPassword(auth, toEmail(u), p); },
+    async getVer(u){ try{ const s = await Fs.getDoc(Fs.doc(db, 'pwver', u.toLowerCase())); return s.exists() ? (s.data().v || 1) : 1; }catch(_){ return 1; } },
+    async signIn(u, p){ const v = await this.getVer(u); await Au.signInWithEmailAndPassword(auth, toEmail(u, v), p); },
     async signUp(u, p){ const c = await Au.createUserWithEmailAndPassword(auth, toEmail(u), p); return c.user.uid; },
     signOut(){ return Au.signOut(auth); },
     async getProfile(uid){ const s = await Fs.getDoc(ud(uid)); return s.exists() ? s.data() : null; },
@@ -2528,6 +2885,20 @@ async function makeFirebaseBackend(){
       try{
         const c = await Au.createUserWithEmailAndPassword(sa, toEmail(u), p);
         await Fs.setDoc(ud(c.user.uid), { username:u.toLowerCase(), name, role:'user', active:true, limit, used:0, createdAt: Fs.serverTimestamp() });
+        await Au.signOut(sa);
+      } finally { try{ await A.deleteApp(sec); }catch(_){} }
+    },
+    async resetPassword(uid, username, p){
+      /* الأدمن مينفعش يغير باسورد حساب Firebase Auth من المتصفح، فبننشئ نسخة جديدة من الحساب بالباسورد الجديد ونحوّل ليها بيانات المستخدم */
+      const old = await Fs.getDoc(ud(uid)); if(!old.exists()) throw new Error('المستخدم مش موجود');
+      const nv = (await this.getVer(username)) + 1, sec = A.initializeApp(STUDIO_FIREBASE, 'sec' + Date.now()), sa = Au.getAuth(sec);
+      try{
+        const c = await Au.createUserWithEmailAndPassword(sa, toEmail(username, nv), p);
+        const d = old.data();
+        await Fs.setDoc(ud(c.user.uid), { username:d.username, name:d.name, role:'user', active:d.active === true, limit:d.limit || 0, used:d.used || 0, createdAt: d.createdAt || Fs.serverTimestamp() });
+        try{ await Fs.setDoc(Fs.doc(db, 'pwver', username.toLowerCase()), { v: nv }); }
+        catch(e){ const er = new Error('pw-rules'); er.code = 'pw-rules'; throw er; }
+        await Fs.updateDoc(ud(uid), { deleted:true, active:false, replacedBy:c.user.uid });
         await Au.signOut(sa);
       } finally { try{ await A.deleteApp(sec); }catch(_){} }
     },
@@ -2605,16 +2976,24 @@ async function route(user){
     }
   }catch(e){ showStatus('⚠️', 'تعذر التحقق من الحساب', esc(errMsg(e))); return; }
   const isAdmin = prof.role === 'admin' && prof.active === true;
+  if(prof.deleted){ showStatus('🚫', 'تم إيقاف هذا الحساب', 'الرجاء الاتصال بالأدمن.'); return; }
+  let notice = null;
   if(!isAdmin){
     if(!prof.active){ showStatus('⏳', 'حسابك في انتظار التفعيل', 'الأدمن لازم يفعّل حسابك ويحدد عدد مرات الاستخدام. ارجع حدّث الصفحة بعد التفعيل.'); return; }
     const key = 'studio_counted_' + user.uid;
     if(!sessionStorage.getItem(key)){
-      if((prof.used || 0) >= (prof.limit || 0)){ showStatus('🚫', 'انتهت مرات الاستخدام', 'استنفدت عدد مرات الاستخدام المسموحة (' + (prof.limit || 0) + '). كلّم الأدمن عشان يجدد لك.'); return; }
-      try{ await B.useOne(user.uid); sessionStorage.setItem(key, '1'); prof = await B.getProfile(user.uid); }
+      if((prof.used || 0) >= (prof.limit || 0)){ showStatus('🚫', 'انتهى حد الاستخدام', 'استخدمت ' + (prof.used || 0) + ' مرة من ' + (prof.limit || 0) + ' المسموح بها.<br><b>الرجاء الاتصال بالأدمن لإعادة فتح حد الاستخدام</b>'); return; }
+      try{ await B.useOne(user.uid); sessionStorage.setItem(key, '1'); prof = await B.getProfile(user.uid); notice = { used: prof.used || 0, limit: prof.limit || 0 }; }
       catch(e){ showStatus('⚠️', 'تعذر تسجيل الاستخدام', esc(errMsg(e))); return; }
     }
   }
-  hideGate(); mountChip(); if(window.__startStudio) window.__startStudio();
+  const go = ()=>{ hideGate(); mountChip(); if(window.__startStudio) window.__startStudio(); };
+  if(notice){
+    const left = notice.limit - notice.used;
+    gateHTML('<div style="font-size:44px;text-align:center">' + (left <= 0 ? '⚠️' : '🎟') + '</div><h2>استخدمت ' + notice.used + ' مرة من ' + notice.limit + ' المسموح بها</h2><p class="ag-m" style="text-align:center">' + (left <= 0 ? '<b>دي آخر مرة متاحة.</b><br>بعدها الرجاء الاتصال بالأدمن لإعادة فتح حد الاستخدام.' : 'المتبقي: ' + left + ' مرة.') + '</p><button class="ag-b" id="agGoOn">متابعة ←</button>');
+    $a('agGoOn').onclick = go; return;
+  }
+  go();
 }
 
 function mountChip(){
@@ -2637,11 +3016,12 @@ async function openAdmin(){
   panel.innerHTML = `<div class="ap-box"><div class="ap-top"><b>👑 إدارة المستخدمين</b><button id="apX">✖ إغلاق</button></div>
    <div class="ap-add"><b>➕ إضافة مستخدم (مفعّل مباشرة)</b>
      <input id="apN" placeholder="الاسم"><input id="apU" dir="ltr" placeholder="username"><input id="apP" dir="ltr" placeholder="password (6+)"><input id="apL" type="number" min="0" value="10" title="عدد مرات الاستخدام"><button id="apA">إضافة</button></div>
-   <div class="ap-msg" id="apM"></div><div class="ap-tbl" id="apT">جاري التحميل...</div></div>`;
+   <div class="ap-msg" id="apM"></div><label style="font-size:13px;display:block;margin:4px 2px;"><input type="checkbox" id="apDel"> 👁 عرض المحذوفين</label><div class="ap-tbl" id="apT">جاري التحميل...</div></div>`;
   document.body.appendChild(panel); $a('apX').onclick = ()=> panel.remove();
   const msg = t => { $a('apM').textContent = t || ''; };
   async function load(){
     let list = []; try{ list = await B.listUsers(); }catch(e){ $a('apT').textContent = errMsg(e); return; }
+    const showDel = $a('apDel').checked; list = list.filter(u => showDel ? u.deleted : !u.deleted);
     list.sort((a, b) => (a.active === b.active ? String(a.username).localeCompare(String(b.username)) : a.active ? 1 : -1));
     $a('apT').innerHTML = '<table><thead><tr><th>المستخدم</th><th>الحالة</th><th>الاستخدام</th><th>الحد</th><th>إجراءات</th></tr></thead><tbody>' + list.map(u => {
       const adm = u.role === 'admin';
@@ -2649,15 +3029,22 @@ async function openAdmin(){
        <td>${adm ? '👑 أدمن' : u.active ? '<span class="ok">✅ مفعّل</span>' : '<span class="wt">⏳ منتظر</span>'}</td>
        <td>${adm ? '∞' : (u.used || 0)}</td>
        <td>${adm ? '∞' : `<input type="number" min="0" class="lim" value="${u.limit || 0}">`}</td>
-       <td>${adm ? '' : `<button data-a="save">💾 حفظ الحد</button> <button data-a="${u.active ? 'off' : 'on'}">${u.active ? '⏸ إيقاف' : '✅ تفعيل'}</button> <button data-a="reset">♻️ تصفير الاستخدام</button>`}</td></tr>`;
+       <td>${adm ? '' : u.deleted ? `<button data-a="restore">♻️ استرجاع</button>` : `<button data-a="save">💾 حفظ الحد</button> <button data-a="${u.active ? 'off' : 'on'}">${u.active ? '⏸ إيقاف' : '✅ تفعيل'}</button> <button data-a="reset">♻️ تصفير الاستخدام</button> <button data-a="pw">🔑 تغيير الباسورد</button> <button data-a="del">🗑 حذف</button>`}</td></tr>`;
     }).join('') + '</tbody></table>';
     $a('apT').querySelectorAll('tr[data-u]').forEach(tr => tr.querySelectorAll('button').forEach(b => b.onclick = async ()=>{
-      const uid = tr.dataset.u, a = b.dataset.a, lim = Math.max(0, parseInt(tr.querySelector('.lim').value, 10) || 0);
+      const uid = tr.dataset.u, a = b.dataset.a, limEl = tr.querySelector('.lim'), lim = Math.max(0, parseInt(limEl ? limEl.value : 0, 10) || 0), uname = (list.find(x => x.uid === uid) || {}).username;
       try{
         if(a === 'save') await B.updateUser(uid, { limit: lim });
         else if(a === 'on') await B.updateUser(uid, { active:true, limit: lim || 10 });
         else if(a === 'off') await B.updateUser(uid, { active:false });
         else if(a === 'reset') await B.updateUser(uid, { used:0 });
+        else if(a === 'del'){ if(!confirm('حذف المستخدم ' + uname + '؟ مش هيقدر يدخل تاني (تقدر ترجّعه من «عرض المحذوفين»).')) return; await B.updateUser(uid, { deleted:true, active:false }); }
+        else if(a === 'restore') await B.updateUser(uid, { deleted:false, active:true, limit: lim || 10 });
+        else if(a === 'pw'){
+          const np = prompt('كلمة المرور الجديدة للمستخدم ' + uname + ' (6 على الأقل):'); if(!np) return;
+          if(np.length < 6){ msg('كلمة المرور 6 على الأقل'); return; }
+          msg('جاري التغيير...'); await B.resetPassword(uid, uname, np); msg('اتغيرت كلمة مرور ' + uname + ' ✔ (الاستخدام والحد اتنقلوا زي ما هم)'); load(); return;
+        }
         msg('تم ✔'); load();
       }catch(e){ msg(errMsg(e)); }
     }));
@@ -2668,6 +3055,7 @@ async function openAdmin(){
     if(p.length < 6){ msg('كلمة المرور 6 على الأقل'); return; }
     try{ await B.adminCreate(u, p, n, l); msg('تمت إضافة ' + u + ' ✔'); $a('apU').value = ''; $a('apP').value = ''; $a('apN').value = ''; load(); }catch(e){ msg(errMsg(e)); }
   };
+  $a('apDel').onchange = load;
   load();
 }
 
