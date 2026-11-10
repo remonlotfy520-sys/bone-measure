@@ -110,6 +110,37 @@
   .mv-fp.ic .mv-tgrid .wide{grid-column:auto;}
   .mv-fp.min .mv-tgrid{display:none;}
   .mv-fp.min .mv-fp-h{padding-bottom:1px;}
+  /* ===== أشكال قوائم الأدوات: عايمة / لوحة ثابتة / شريط أيقونات ===== */
+  .mv-dock{display:none; flex:none; flex-direction:column; gap:8px; padding:6px; background:var(--mv-panel); border-inline-end:1px solid var(--mv-line2); overflow-y:auto; width:max-content; min-width:120px; max-width:260px;}
+  .mvmode-panel .mv-dock.open{display:flex;}
+  .mv-dock .mv-fp{position:static; box-shadow:none; max-width:100%; opacity:1;}
+  .mv-dock-head{display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:12px; color:var(--mv-text);}
+  .mv-dock-head button{padding:2px 7px !important;}
+  #mvDockFab{position:absolute; top:4px; left:110px; z-index:7; width:30px; height:30px; font-size:13px !important; display:none;}
+  .mv-overlay.ltr #mvDockFab{left:auto; right:110px;}
+  .mvmode-panel #mvDockFab{display:block;}
+  .mv-strip{display:none; flex:none; width:42px; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; background:var(--mv-panel); border-inline-end:1px solid var(--mv-line2); overflow-y:auto; overflow-x:hidden;}
+  .mvmode-strip .mv-strip{display:flex;}
+  .mvmode-strip .mv-fp{display:none;}
+  .mv-overlay .mv-strip button{width:32px; height:32px; padding:0; font-size:16px; line-height:1; border-radius:8px; flex:none;}
+  .mv-strip .sp{flex:none; width:26px; height:1px; background:var(--mv-line); margin:7px 0;}
+  .mv-strip .add{margin-top:auto; border-style:dashed !important; font-weight:800;}
+  .mv-dlg-bg{position:absolute; inset:0; z-index:30; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:12px;}
+  .mv-dlg{background:var(--mv-panel); color:var(--mv-text); border:1px solid var(--mv-line); border-radius:12px; width:min(460px,100%); max-height:90%; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  .mv-dlg h3{margin:0; padding:10px 12px; font-size:14px; border-bottom:1px solid var(--mv-line2); display:flex; justify-content:space-between; align-items:center;}
+  .mv-dlg .bd{overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:6px;}
+  .mv-dlg .row{display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid var(--mv-line2); border-radius:8px;}
+  .mv-dlg .row .ic{width:26px; text-align:center; font-size:16px; flex:none;}
+  .mv-dlg .row .lb{flex:1; font-size:12px;}
+  .mv-dlg .row button{padding:2px 8px !important;}
+  .mv-dlg .opt{display:block; text-align:start; padding:10px !important; font-size:13px !important;}
+  .mv-dlg .opt small{display:block; opacity:.7; font-size:11px; margin-top:2px;}
+  .mv-dlg input[type=text]{width:100%; box-sizing:border-box; padding:6px 8px; border-radius:7px; border:1px solid var(--mv-line); background:var(--mv-btn); color:var(--mv-text);}
+  @media (max-width:760px){
+    .mv-dock{position:absolute; top:0; bottom:0; right:0; z-index:6; box-shadow:-6px 0 20px rgba(0,0,0,.5);}
+    .mv-overlay.ltr .mv-dock{right:auto; left:0; box-shadow:6px 0 20px rgba(0,0,0,.5);}
+  }
+
   
 #authGate{position:fixed; inset:0; z-index:2000000; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 30% 20%,var(--mv-glow),var(--mv-bg) 70%); direction:rtl; padding:16px; overflow:auto; color:var(--mv-text); font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
 .ag-card{width:100%; max-width:440px; background:var(--mv-panel); border:1px solid var(--mv-line2); border-radius:16px; padding:22px; box-shadow:0 12px 40px rgba(0,0,0,.5); margin:auto;}
@@ -135,7 +166,7 @@
 <body>
 <div id="measureViewer" class="mv-overlay">
   <button id="mvTopFab" class="mv-fab" title="القائمة">☰</button>
-  <button id="mvQUndo" class="mv-qbtn" title="↩">↩</button><button id="mvQRedo" class="mv-qbtn" title="↪">↪</button>
+  <button id="mvQUndo" class="mv-qbtn" title="↩">↩</button><button id="mvQRedo" class="mv-qbtn" title="↪">↪</button><button id="mvDockFab" class="mv-fab" title="الأدوات">🧰</button>
   <div class="mv-top mv-top-hide" id="mvTop">
     <span class="mv-title" id="mvTitle" data-i18n-skip>📐 الرسم والقياس</span>
     <button id="mvLang" data-i18n-skip title="Switch to English">🌐 EN</button>
@@ -156,6 +187,7 @@
     <button id="mvToolZoom">🔍 زووم</button>
     <button id="mvViewBack">↩ العرض السابق</button>
     <button id="mvLoupeBtn">🔎 عدسة</button>
+    <button id="mvLayoutBtn" title="شكل قوائم الأدوات">🧰 شكل القوائم</button>
     <button id="mvClose" style="margin-inline-start:auto;">✖ إغلاق</button>
       <div class="mv-theme-row"><span class="mv-lbl">🎨 لون البرنامج</span>
       <button class="mv-th" data-t="green" title="أخضر" style="background:#2f8f6b"></button><button class="mv-th" data-t="blue" title="أزرق" style="background:#3b82f6"></button><button class="mv-th" data-t="purple" title="بنفسجي" style="background:#8b5cf6"></button><button class="mv-th" data-t="graphite" title="رمادي/برتقالي" style="background:#d97706"></button><button class="mv-th" data-t="light" title="فاتح" style="background:#f4f7f5"></button>
@@ -380,6 +412,7 @@ const mv = { img:null, shapes:[], pending:[], pendRefs:[], tool:'line', zoom:1, 
              baseUrl:null, baseBlank:false, adj:null, adjCanvas:null, viewStack:[], prevTool:'move', zoomRect:null, loupe:false, lastWheel:0, cropTarget:null, cropRect:null, cmp:{open:false, zoom:1, cur:null, stages:[]}, sel:null, multi:new Set(), drag:null, down:null, color:'#39ff88', w:3, bound:false,
              pivot:null, rot:{ phi:-Math.PI/2, from:null, total:0 } };
 const MV_EN = {
+"المتصفح ده مش بيدعم MP4 - اتحفظ الفيديو بصيغة WebM. جرّب Chrome أو Safari حديث": "This browser doesn't support MP4 - saved as WebM. Try a recent Chrome or Safari",
 "📄 كل الخطوات PDF": "📄 All steps PDF",
 "كل خطوة صفحة في ملف PDF": "Each step as a page in a PDF file",
 "📄 حفظ PDF": "📄 Save PDF",
@@ -766,6 +799,7 @@ function mvInitFloat(){
     b2.textContent = fp.classList.contains('min') ? '▢' : '▁';
     h.addEventListener('pointerdown', e=>{
       if(e.target.closest('button')) return;
+      if(fp.parentElement && fp.parentElement.id === 'mvDock') return;
       e.preventDefault();
       const r0 = { mx:e.clientX, my:e.clientY, x:fp.offsetLeft, y:fp.offsetTop };
       h.setPointerCapture(e.pointerId);
@@ -779,6 +813,184 @@ function mvInitFloat(){
   window.addEventListener('resize', ()=> MV_FP_IDS.forEach(id=>{ const el = $(id); if(el) mvFpClamp(el); }));
 }
 
+
+
+// ===== شكل قوائم الأدوات: (1) عايمة (2) لوحة جنب ثابتة (3) شريط أيقونات تخصصه بنفسك =====
+const MV_LAYOUTS = ['float','panel','strip'];
+const MV_STRIP_DEFAULT = ['mvToolLine','mvToolCalib','mvToolAngle','mvToolAngle2','|','mvToolPoint','mvToolSeg','mvToolCurve','mvToolPen','mvToolText','|','mvToolMove','mvToolPan','mvToolCrop','mvToolCut','mvToolRotate','|','mvUndo','mvRedo','mvZoomFit'];
+const MV_STRIP_EXCL = /^(mvTopFab|mvQUndo|mvQRedo|mvSideHide|mvSideFab|mvDockFab|mvCmp\w*|mvInsert2|mvTpl2|calcFabBtn|stickyFabBtn|todoFabBtn|mvLayoutBtn)$/;
+const MV_ICON_FIX = { mvZoomFit:'⛶' };
+let mvStripItems = null, mvStripObs = null, mvDockOpen = true;
+function mvLayoutGet(){ try{ const v = localStorage.getItem('mvLayout'); return MV_LAYOUTS.indexOf(v) >= 0 ? v : 'float'; }catch(_){ return 'float'; } }
+function mvStripGet(){
+  if(mvStripItems) return mvStripItems;
+  try{ const v = JSON.parse(localStorage.getItem('mvStrip') || 'null'); if(Array.isArray(v)) mvStripItems = v; }catch(_){}
+  if(!mvStripItems) mvStripItems = MV_STRIP_DEFAULT.slice();
+  return mvStripItems;
+}
+function mvStripSave(){ try{ localStorage.setItem('mvStrip', JSON.stringify(mvStripItems)); }catch(_){} }
+function mvBtnLabel(b){ const t = ((b.dataset && b.dataset.ar) || b.textContent || '').trim(); return mvT(t); }
+function mvBtnIcon(b){
+  if(MV_ICON_FIX[b.id]) return MV_ICON_FIX[b.id];
+  const t = ((b.dataset && b.dataset.ar) || b.textContent || '').trim();
+  const m = t.match(/^[^؀-ۿA-Za-z0-9]+/);
+  return ((m ? m[0].trim() : '') || t.charAt(0)).trim() || '•';
+}
+function mvStripTip(btn){
+  let tip = $('mvStripTip');
+  if(!btn){ if(tip) tip.style.display = 'none'; return; }
+  const root = $('measureViewer');
+  if(!tip){
+    tip = document.createElement('div'); tip.id = 'mvStripTip';
+    tip.style.cssText = 'position:fixed;z-index:60;pointer-events:none;background:#000d;color:#fff;border:1px solid var(--mv-line);border-radius:7px;padding:5px 10px;font-size:12px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);';
+    root.appendChild(tip);
+  }
+  tip.textContent = btn.dataset.tip || ''; tip.style.display = 'block';
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  const sr = $('mvStrip').getBoundingClientRect(), fromRight = sr.left > window.innerWidth / 2;
+  let x = fromRight ? r.left - w - 8 : r.right + 8;
+  x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+  tip.style.left = x + 'px'; tip.style.top = Math.max(4, r.top + (r.height - h) / 2) + 'px';
+}
+function mvStripRender(){
+  const el = $('mvStrip'); if(!el) return;
+  mvStripTip(null);
+  el.innerHTML = '';
+  if(mvStripObs){ mvStripObs.disconnect(); mvStripObs = null; }
+  const pairs = [];
+  mvStripGet().forEach(id=>{
+    if(id === '|'){ const sp = document.createElement('div'); sp.className = 'sp'; el.appendChild(sp); return; }
+    const t = $(id); if(!t) return;
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = mvBtnIcon(t); b.title = mvBtnLabel(t);
+    b.classList.toggle('active', t.classList.contains('active'));
+    b.onclick = ()=> t.click();
+    b.removeAttribute('title'); b.dataset.tip = mvBtnLabel(t);
+    b.addEventListener('mouseenter', ()=> mvStripTip(b)); b.addEventListener('mouseleave', ()=> mvStripTip(null));
+    b.addEventListener('focus', ()=> mvStripTip(b)); b.addEventListener('blur', ()=> mvStripTip(null));
+    b.addEventListener('touchstart', ()=>{ mvStripTip(b); setTimeout(()=> mvStripTip(null), 1400); }, { passive:true });
+    el.appendChild(b); pairs.push([t, b]);
+  });
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = '+'; add.title = mvL('إضافة / ترتيب أيقونات الشريط', 'Add / arrange strip icons');
+  add.onclick = mvStripManage; el.appendChild(add);
+  if(pairs.length){
+    mvStripObs = new MutationObserver(()=> pairs.forEach(([t, b]) => b.classList.toggle('active', t.classList.contains('active'))));
+    pairs.forEach(([t]) => mvStripObs.observe(t, { attributes:true, attributeFilter:['class'] }));
+  }
+}
+function mvDlg(title, build){
+  const root = $('measureViewer');
+  const bg = document.createElement('div'); bg.className = 'mv-dlg-bg';
+  const d = document.createElement('div'); d.className = 'mv-dlg';
+  const h = document.createElement('h3'); const ht = document.createElement('span'); ht.textContent = title;
+  const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕';
+  h.append(ht, x);
+  const bd = document.createElement('div'); bd.className = 'bd';
+  d.append(h, bd); bg.appendChild(d); root.appendChild(bg);
+  const close = ()=>{ bg.remove(); };
+  x.onclick = close; bg.addEventListener('mousedown', e=>{ if(e.target === bg) close(); });
+  build(bd, close);
+  return close;
+}
+function mvStripManage(){
+  mvDlg(mvL('🧰 أيقونات الشريط', '🧰 Strip icons'), (bd, close)=>{
+    const draw = ()=>{
+      bd.innerHTML = '';
+      const items = mvStripGet();
+      const cur = document.createElement('div'); cur.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+      items.forEach((id, i)=>{
+        const row = document.createElement('div'); row.className = 'row';
+        const t = id === '|' ? null : $(id);
+        if(id !== '|' && !t) return;
+        const ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = t ? mvBtnIcon(t) : '┄';
+        const lb = document.createElement('span'); lb.className = 'lb'; lb.textContent = t ? mvBtnLabel(t).replace(/^[^؀-ۿA-Za-z0-9]+/, '').trim() || mvBtnLabel(t) : mvL('مسافة بين مجموعتين', 'Gap between groups');
+        const up = document.createElement('button'); up.type = 'button'; up.textContent = '▲'; up.disabled = i === 0;
+        const dn = document.createElement('button'); dn.type = 'button'; dn.textContent = '▼'; dn.disabled = i === items.length - 1;
+        const rm = document.createElement('button'); rm.type = 'button'; rm.textContent = '✕';
+        up.onclick = ()=>{ [items[i-1], items[i]] = [items[i], items[i-1]]; mvStripSave(); mvStripRender(); draw(); };
+        dn.onclick = ()=>{ [items[i+1], items[i]] = [items[i], items[i+1]]; mvStripSave(); mvStripRender(); draw(); };
+        rm.onclick = ()=>{ items.splice(i, 1); mvStripSave(); mvStripRender(); draw(); };
+        row.append(ic, lb, up, dn, rm); cur.appendChild(row);
+      });
+      if(!cur.children.length){ const e = document.createElement('div'); e.className = 'mv-lbl'; e.textContent = mvL('الشريط فاضي — ضيف وظايف من تحت', 'Strip is empty — add functions below'); cur.appendChild(e); }
+      const addSp = document.createElement('button'); addSp.type = 'button'; addSp.textContent = mvL('➕ إضافة مسافة بين مجموعتين', '➕ Add a gap between groups');
+      addSp.onclick = ()=>{ items.push('|'); mvStripSave(); mvStripRender(); draw(); };
+      const rs = document.createElement('button'); rs.type = 'button'; rs.textContent = mvL('↺ رجوع للشريط الافتراضي', '↺ Reset to default strip');
+      rs.onclick = ()=>{ mvStripItems = MV_STRIP_DEFAULT.slice(); mvStripSave(); mvStripRender(); draw(); };
+      const sh = document.createElement('div'); sh.style.cssText = 'font-weight:800;font-size:12px;margin-top:6px;'; sh.textContent = mvL('➕ ضيف وظيفة من البرنامج', '➕ Add a function from the app');
+      const q = document.createElement('input'); q.type = 'text'; q.placeholder = mvL('ابحث...', 'Search...');
+      const list = document.createElement('div'); list.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+      const fill = ()=>{
+        list.innerHTML = '';
+        const f = q.value.trim().toLowerCase(), seen = {};
+        [...$('measureViewer').querySelectorAll('button[id]')].forEach(b=>{
+          if(MV_STRIP_EXCL.test(b.id) || seen[b.id] || items.indexOf(b.id) >= 0) return;
+          seen[b.id] = 1;
+          const lab = mvBtnLabel(b); if(!lab) return;
+          if(f && lab.toLowerCase().indexOf(f) < 0) return;
+          const row = document.createElement('div'); row.className = 'row'; row.style.cursor = 'pointer';
+          const ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = mvBtnIcon(b);
+          const lb = document.createElement('span'); lb.className = 'lb'; lb.textContent = lab.replace(/^[^؀-ۿA-Za-z0-9]+/, '').trim() || lab;
+          const pl = document.createElement('span'); pl.textContent = '＋'; pl.style.fontWeight = '800';
+          row.append(ic, lb, pl);
+          row.onclick = ()=>{ items.push(b.id); mvStripSave(); mvStripRender(); draw(); };
+          list.appendChild(row);
+        });
+        if(!list.children.length){ const e = document.createElement('div'); e.className = 'mv-lbl'; e.textContent = mvL('مفيش نتايج', 'No results'); list.appendChild(e); }
+      };
+      q.oninput = fill; fill();
+      const done = document.createElement('button'); done.type = 'button'; done.className = 'active'; done.textContent = mvL('✔ تم', '✔ Done'); done.onclick = close;
+      bd.append(cur, addSp, rs, sh, q, list, done);
+    };
+    draw();
+  });
+}
+function mvLayoutSet(mode, save){
+  if(MV_LAYOUTS.indexOf(mode) < 0) mode = 'float';
+  const root = $('measureViewer'), body = root.querySelector('.mv-body'), dock = $('mvDock');
+  mvUiRefit(()=>{
+    MV_LAYOUTS.forEach(m => root.classList.toggle('mvmode-' + m, m === mode));
+    MV_FP_IDS.forEach(id=>{ const el = $(id); if(el) (mode === 'panel' ? dock : body).appendChild(el); });
+    dock.classList.toggle('open', mode === 'panel' && mvDockOpen);
+    if(mode === 'float') mvFpLayout();
+    if(mode === 'strip') mvStripRender();
+  });
+  if(save){ try{ localStorage.setItem('mvLayout', mode); }catch(_){} }
+}
+function mvDockToggle(force){
+  mvDockOpen = force === undefined ? !mvDockOpen : force;
+  try{ localStorage.setItem('mvDockOpen', mvDockOpen ? '1' : '0'); }catch(_){}
+  mvUiRefit(()=> $('mvDock').classList.toggle('open', mvLayoutGet() === 'panel' && mvDockOpen));
+}
+function mvLayoutChoose(){
+  mvDlg(mvL('🧰 شكل قوائم الأدوات', '🧰 Tool menus layout'), (bd, close)=>{
+    const cur = mvLayoutGet();
+    [
+      ['float', mvL('🪟 عايمة', '🪟 Floating'), mvL('القوائم بتتحرك بالسحب فوق الرسمة (الشكل الحالي)', 'Draggable panels over the canvas')],
+      ['panel', mvL('📌 لوحة جنب ثابتة', '📌 Fixed side panel'), mvL('قايمة ثابتة جنب الشاشة، بتظهر وتختفي بأيقونة 🧰 فوق', 'Docked panel, shown/hidden with the 🧰 icon on top')],
+      ['strip', mvL('🧰 شريط أيقونات', '🧰 Icon strip'), mvL('شريط أيقونات جنب الشاشة، بتضيف فيه أي وظيفة بزرار + وتحط مسافات بين المجموعات', 'Icon strip on the side; add any function with + and gaps between groups')]
+    ].forEach(([m, t, d])=>{
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt' + (m === cur ? ' active' : '');
+      b.innerHTML = ''; const s = document.createElement('span'); s.textContent = t; const sm = document.createElement('small'); sm.textContent = d; b.append(s, sm);
+      b.onclick = ()=>{ mvLayoutSet(m, true); close(); };
+      bd.appendChild(b);
+    });
+  });
+}
+function mvLayoutInit(){
+  if($('mvDock')) return;
+  const body = document.querySelector('#measureViewer .mv-body');
+  try{ const v = localStorage.getItem('mvDockOpen'); mvDockOpen = v === null ? !mvIsMobile() : v === '1'; }catch(_){}
+  const dock = document.createElement('div'); dock.className = 'mv-dock'; dock.id = 'mvDock';
+  const head = document.createElement('div'); head.className = 'mv-dock-head';
+  const ht = document.createElement('span'); ht.textContent = '🧰'; const hx = document.createElement('button'); hx.type = 'button'; hx.textContent = '✕';
+  hx.onclick = ()=> mvDockToggle(false); head.append(ht, hx); dock.appendChild(head);
+  const strip = document.createElement('div'); strip.className = 'mv-strip'; strip.id = 'mvStrip';
+  body.prepend(dock); body.prepend(strip);
+  $('mvDockFab').onclick = ()=> mvDockToggle();
+  $('mvLayoutBtn').onclick = mvLayoutChoose;
+  $('mvLang').addEventListener('click', ()=> setTimeout(()=>{ mvStripRender(); }, 80));
+  mvLayoutSet(mvLayoutGet(), false);
+}
 
 // ===== إظهار/إخفاء المقاس على الخطوط =====
 function mvLenTargets(){ return [...(mv.multi && mv.multi.size ? mv.multi : (mv.sel ? [mv.sel] : []))].filter(sh=> sh.type === 'line' || sh.type === 'calib' || sh.type === 'curve'); }
@@ -1771,7 +1983,7 @@ function mvBind(){
   $('mvSideHide').onclick = ()=> mvToggleSide(false);
   $('mvSideFab').onclick = ()=> mvToggleSide(true);
   $('mvTopFab').onclick = ()=> mvToggleTop();
-  mvInitFloat(); mvLenInit();
+  mvInitFloat(); mvLenInit(); mvLayoutInit();
   $('mvQUndo').onclick = ()=> $('mvUndo').click();
   $('mvQRedo').onclick = ()=> $('mvRedo').click();
   document.querySelectorAll('.mv-th').forEach(b => b.onclick = ()=> mvApplyTheme(b.dataset.t, true));
@@ -2368,10 +2580,61 @@ function mvHExportBegin(){
   mvHExporting = true; return mvH.i;
 }
 function mvHExportEnd(back){ mvHGo(back); mvDraw(); mvHExporting = false; $('mvHVideo').disabled = false; $('mvHZip').disabled = false; $('mvHPdf').disabled = false; $('mvHVideo').textContent = mvL('🎬 حفظ فيديو','🎬 Save video'); }
+/* ===== فيديو MP4 حقيقي (H.264) بدون مكتبات خارجية - بيستخدم WebCodecs + مكتبة mp4-muxer (MIT) متضمّنة هنا ===== */
+(()=>{var ze=(e,t,s)=>{if(!t.has(e))throw TypeError("Cannot "+s)},i=(e,t,s)=>(ze(e,t,"read from private field"),s?s.call(e):t.get(e)),d=(e,t,s)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,s)},T=(e,t,s,r)=>(ze(e,t,"write to private field"),r?r.call(e,s):t.set(e,s),s),rt=(e,t,s,r)=>({set _(a){T(e,t,a,s)},get _(){return i(e,t,r)}}),m=(e,t,s)=>(ze(e,t,"access private method"),s),p=new Uint8Array(8),M=new DataView(p.buffer),C=e=>[(e%256+256)%256],c=e=>(M.setUint16(0,e,!1),[p[0],p[1]]),at=e=>(M.setInt16(0,e,!1),[p[0],p[1]]),Ve=e=>(M.setUint32(0,e,!1),[p[1],p[2],p[3]]),n=e=>(M.setUint32(0,e,!1),[p[0],p[1],p[2],p[3]]),nt=e=>(M.setInt32(0,e,!1),[p[0],p[1],p[2],p[3]]),V=e=>(M.setUint32(0,Math.floor(e/2**32),!1),M.setUint32(4,e,!1),[p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]]),Ee=e=>(M.setInt16(0,2**8*e,!1),[p[0],p[1]]),B=e=>(M.setInt32(0,2**16*e,!1),[p[0],p[1],p[2],p[3]]),we=e=>(M.setInt32(0,2**30*e,!1),[p[0],p[1],p[2],p[3]]),z=(e,t=!1)=>{let s=Array(e.length).fill(null).map((r,a)=>e.charCodeAt(a));return t&&s.push(0),s},he=e=>e&&e[e.length-1],Ae=e=>{let t;for(let s of e)(!t||s.presentationTimestamp>t.presentationTimestamp)&&(t=s);return t},O=(e,t,s=!0)=>{let r=e*t;return s?Math.round(r):r},Pe=e=>{let t=e*(Math.PI/180),s=Math.cos(t),r=Math.sin(t);return[s,r,0,-r,s,0,0,0,1]},je=Pe(0),$e=e=>[B(e[0]),B(e[1]),we(e[2]),B(e[3]),B(e[4]),we(e[5]),B(e[6]),B(e[7]),we(e[8])],Z=e=>!e||typeof e!="object"?e:Array.isArray(e)?e.map(Z):Object.fromEntries(Object.entries(e).map(([t,s])=>[t,Z(s)])),H=e=>e>=0&&e<2**32,g=(e,t,s)=>({type:e,contents:t&&new Uint8Array(t.flat(10)),children:s}),w=(e,t,s,r,a)=>g(e,[C(t),Ve(s),r??[]],a),ot=e=>{let t=512;return e.fragmented?g("ftyp",[z("iso5"),n(t),z("iso5"),z("iso6"),z("mp41")]):g("ftyp",[z("isom"),n(t),z("isom"),e.holdsAvc?z("avc1"):[],z("mp41")])},ve=e=>({type:"mdat",largeSize:e}),ht=e=>({type:"free",size:e}),ie=(e,t,s=!1)=>g("moov",null,[lt(t,e),...e.map(r=>ft(r,t)),s?Nt(e):null]),lt=(e,t)=>{let s=O(Math.max(0,...t.filter(l=>l.samples.length>0).map(l=>{let f=Ae(l.samples);return f.presentationTimestamp+f.duration})),Ce),r=Math.max(...t.map(l=>l.id))+1,a=!H(e)||!H(s),o=a?V:n;return w("mvhd",+a,0,[o(e),o(e),n(Ce),o(s),B(1),Ee(1),Array(10).fill(0),$e(je),Array(24).fill(0),n(r)])},ft=(e,t)=>g("trak",null,[ut(e,t),dt(e,t)]),ut=(e,t)=>{let s=Ae(e.samples),r=O(s?s.presentationTimestamp+s.duration:0,Ce),a=!H(t)||!H(r),o=a?V:n,l;return e.info.type==="video"?l=typeof e.info.rotation=="number"?Pe(e.info.rotation):e.info.rotation:l=je,w("tkhd",+a,3,[o(t),o(t),n(e.id),n(0),o(r),Array(8).fill(0),c(0),c(0),Ee(e.info.type==="audio"?1:0),c(0),$e(l),B(e.info.type==="video"?e.info.width:0),B(e.info.type==="video"?e.info.height:0)])},dt=(e,t)=>g("mdia",null,[mt(e,t),pt(e.info.type==="video"?"vide":"soun"),ct(e)]),mt=(e,t)=>{let s=Ae(e.samples),r=O(s?s.presentationTimestamp+s.duration:0,e.timescale),a=!H(t)||!H(r),o=a?V:n;return w("mdhd",+a,0,[o(t),o(t),n(e.timescale),o(r),c(21956),c(0)])},pt=e=>w("hdlr",0,0,[z("mhlr"),z(e),n(0),n(0),n(0),z("mp4-muxer-hdlr",!0)]),ct=e=>g("minf",null,[e.info.type==="video"?wt():vt(),gt(),Tt(e)]),wt=()=>w("vmhd",0,1,[c(0),c(0),c(0),c(0)]),vt=()=>w("smhd",0,0,[c(0),c(0)]),gt=()=>g("dinf",null,[yt()]),yt=()=>w("dref",0,0,[n(1)],[Ct()]),Ct=()=>w("url ",0,1),Tt=e=>{let t=e.compositionTimeOffsetTable.length>1||e.compositionTimeOffsetTable.some(s=>s.sampleCompositionTimeOffset!==0);return g("stbl",null,[St(e),Mt(e),It(e),Dt(e),Ut(e),xt(e),t?Wt(e):null])},St=e=>w("stsd",0,0,[n(1)],[e.info.type==="video"?bt(Xt[e.info.codec],e):At(Zt[e.info.codec],e)]),bt=(e,t)=>g(e,[Array(6).fill(0),c(1),c(0),c(0),Array(12).fill(0),c(t.info.width),c(t.info.height),n(4718592),n(4718592),n(0),c(1),Array(32).fill(0),c(24),at(65535)],[Gt[t.info.codec](t)]),kt=e=>e.info.decoderConfig&&g("avcC",[...new Uint8Array(e.info.decoderConfig.description)]),_t=e=>e.info.decoderConfig&&g("hvcC",[...new Uint8Array(e.info.decoderConfig.description)]),zt=e=>{if(!e.info.decoderConfig)return null;let t=e.info.decoderConfig;if(!t.colorSpace)throw new Error("'colorSpace' is required in the decoder config for VP9.");let s=t.codec.split("."),r=Number(s[1]),a=Number(s[2]),f=(Number(s[3])<<4)+(0<<1)+Number(t.colorSpace.fullRange);return w("vpcC",1,0,[C(r),C(a),C(f),C(2),C(2),C(2),c(0)])},Et=()=>{let s=(1<<7)+1;return g("av1C",[s,0,0,0])},At=(e,t)=>g(e,[Array(6).fill(0),c(1),c(0),c(0),n(0),c(t.info.numberOfChannels),c(16),c(0),c(0),B(t.info.sampleRate)],[Kt[t.info.codec](t)]),Bt=e=>{let t=new Uint8Array(e.info.decoderConfig.description);return w("esds",0,0,[n(58753152),C(32+t.byteLength),c(1),C(0),n(75530368),C(18+t.byteLength),C(64),C(21),Ve(0),n(130071),n(130071),n(92307584),C(t.byteLength),...t,n(109084800),C(1),C(2)])},Ot=e=>{let t=3840,s=0,r=e.info.decoderConfig?.description;if(r){if(r.byteLength<18)throw new TypeError("Invalid decoder description provided for Opus; must be at least 18 bytes long.");let a=ArrayBuffer.isView(r)?new DataView(r.buffer,r.byteOffset,r.byteLength):new DataView(r);t=a.getUint16(10,!0),s=a.getInt16(14,!0)}return g("dOps",[C(0),C(e.info.numberOfChannels),c(t),n(e.info.sampleRate),Ee(s),C(0)])},Mt=e=>w("stts",0,0,[n(e.timeToSampleTable.length),e.timeToSampleTable.map(t=>[n(t.sampleCount),n(t.sampleDelta)])]),It=e=>{if(e.samples.every(s=>s.type==="key"))return null;let t=[...e.samples.entries()].filter(([,s])=>s.type==="key");return w("stss",0,0,[n(t.length),t.map(([s])=>n(s+1))])},Dt=e=>w("stsc",0,0,[n(e.compactlyCodedChunkTable.length),e.compactlyCodedChunkTable.map(t=>[n(t.firstChunk),n(t.samplesPerChunk),n(1)])]),Ut=e=>w("stsz",0,0,[n(0),n(e.samples.length),e.samples.map(t=>n(t.size))]),xt=e=>e.finalizedChunks.length>0&&he(e.finalizedChunks).offset>=2**32?w("co64",0,0,[n(e.finalizedChunks.length),e.finalizedChunks.map(t=>V(t.offset))]):w("stco",0,0,[n(e.finalizedChunks.length),e.finalizedChunks.map(t=>n(t.offset))]),Wt=e=>w("ctts",0,0,[n(e.compositionTimeOffsetTable.length),e.compositionTimeOffsetTable.map(t=>[n(t.sampleCount),n(t.sampleCompositionTimeOffset)])]),Nt=e=>g("mvex",null,e.map(Ft)),Ft=e=>w("trex",0,0,[n(e.id),n(1),n(0),n(0),n(0)]),Le=(e,t)=>g("moof",null,[Rt(e),...t.map(Lt)]),Rt=e=>w("mfhd",0,0,[n(e)]),He=e=>{let t=0,s=0,r=0,a=0,o=e.type==="delta";return s|=+o,o?t|=1:t|=2,t<<24|s<<16|r<<8|a},Lt=e=>g("traf",null,[Vt(e),Pt(e),jt(e)]),Vt=e=>{let t=0;t|=8,t|=16,t|=32,t|=131072;let s=e.currentChunk.samples[1]??e.currentChunk.samples[0],r={duration:s.timescaleUnitsToNextSample,size:s.size,flags:He(s)};return w("tfhd",0,t,[n(e.id),n(r.duration),n(r.size),n(r.flags)])},Pt=e=>w("tfdt",1,0,[V(O(e.currentChunk.startTimestamp,e.timescale))]),jt=e=>{let t=e.currentChunk.samples.map(I=>I.timescaleUnitsToNextSample),s=e.currentChunk.samples.map(I=>I.size),r=e.currentChunk.samples.map(He),a=e.currentChunk.samples.map(I=>O(I.presentationTimestamp-I.decodeTimestamp,e.timescale)),o=new Set(t),l=new Set(s),f=new Set(r),v=new Set(a),S=f.size===2&&r[0]!==r[1],U=o.size>1,X=l.size>1,Fe=!S&&f.size>1,Re=v.size>1||[...v].some(I=>I!==0),x=0;return x|=1,x|=4*+S,x|=256*+U,x|=512*+X,x|=1024*+Fe,x|=2048*+Re,w("trun",1,x,[n(e.currentChunk.samples.length),n(e.currentChunk.offset-e.currentChunk.moofOffset||0),S?n(r[0]):[],e.currentChunk.samples.map((I,te)=>[U?n(t[te]):[],X?n(s[te]):[],Fe?n(r[te]):[],Re?nt(a[te]):[]])])},$t=e=>g("mfra",null,[...e.map(Ht),qt()]),Ht=(e,t)=>w("tfra",1,0,[n(e.id),n(63),n(e.finalizedChunks.length),e.finalizedChunks.map(r=>[V(O(r.startTimestamp,e.timescale)),V(r.moofOffset),n(t+1),n(1),n(1)])]),qt=()=>w("mfro",0,0,[n(0)]),Xt={avc:"avc1",hevc:"hvc1",vp9:"vp09",av1:"av01"},Gt={avc:kt,hevc:_t,vp9:zt,av1:Et},Zt={aac:"mp4a",opus:"Opus"},Kt={aac:Bt,opus:Ot};var ce=class{},Be=class extends ce{constructor(){super(...arguments),this.buffer=null}},qe=class extends ce{constructor(e){if(super(),this.options=e,typeof e!="object")throw new TypeError("StreamTarget requires an options object to be passed to its constructor.");if(e.onData){if(typeof e.onData!="function")throw new TypeError("options.onData, when provided, must be a function.");if(e.onData.length<2)throw new TypeError("options.onData, when provided, must be a function that takes in at least two arguments (data and position). Ignoring the position argument, which specifies the byte offset at which the data is to be written, can lead to broken outputs.")}if(e.chunked!==void 0&&typeof e.chunked!="boolean")throw new TypeError("options.chunked, when provided, must be a boolean.");if(e.chunkSize!==void 0&&(!Number.isInteger(e.chunkSize)||e.chunkSize<=0))throw new TypeError("options.chunkSize, when provided, must be a positive integer.")}},Qt=class extends ce{constructor(e,t){if(super(),this.stream=e,this.options=t,!(e instanceof FileSystemWritableFileStream))throw new TypeError("FileSystemWritableFileStreamTarget requires a FileSystemWritableFileStream instance.");if(t!==void 0&&typeof t!="object")throw new TypeError("FileSystemWritableFileStreamTarget's options, when provided, must be an object.");if(t&&t.chunkSize!==void 0&&(!Number.isInteger(t.chunkSize)||t.chunkSize<=0))throw new TypeError("options.chunkSize, when provided, must be a positive integer")}},W,P,Oe=class{constructor(){this.pos=0,d(this,W,new Uint8Array(8)),d(this,P,new DataView(i(this,W).buffer)),this.offsets=new WeakMap}seek(e){this.pos=e}writeU32(e){i(this,P).setUint32(0,e,!1),this.write(i(this,W).subarray(0,4))}writeU64(e){i(this,P).setUint32(0,Math.floor(e/2**32),!1),i(this,P).setUint32(4,e,!1),this.write(i(this,W).subarray(0,8))}writeAscii(e){for(let t=0;t<e.length;t++)i(this,P).setUint8(t%8,e.charCodeAt(t)),t%8===7&&this.write(i(this,W));e.length%8!==0&&this.write(i(this,W).subarray(0,e.length%8))}writeBox(e){if(this.offsets.set(e,this.pos),e.contents&&!e.children)this.writeBoxHeader(e,e.size??e.contents.byteLength+8),this.write(e.contents);else{let t=this.pos;if(this.writeBoxHeader(e,0),e.contents&&this.write(e.contents),e.children)for(let a of e.children)a&&this.writeBox(a);let s=this.pos,r=e.size??s-t;this.seek(t),this.writeBoxHeader(e,r),this.seek(s)}}writeBoxHeader(e,t){this.writeU32(e.largeSize?1:t),this.writeAscii(e.type),e.largeSize&&this.writeU64(t)}measureBoxHeader(e){return 8+(e.largeSize?8:0)}patchBox(e){let t=this.pos;this.seek(this.offsets.get(e)),this.writeBox(e),this.seek(t)}measureBox(e){if(e.contents&&!e.children)return this.measureBoxHeader(e)+e.contents.byteLength;{let t=this.measureBoxHeader(e);if(e.contents&&(t+=e.contents.byteLength),e.children)for(let s of e.children)s&&(t+=this.measureBox(s));return t}}};W=new WeakMap;P=new WeakMap;var se,L,J,G,re,ge,Yt=class extends Oe{constructor(e){super(),d(this,re),d(this,se,void 0),d(this,L,new ArrayBuffer(2**16)),d(this,J,new Uint8Array(i(this,L))),d(this,G,0),T(this,se,e)}write(e){m(this,re,ge).call(this,this.pos+e.byteLength),i(this,J).set(e,this.pos),this.pos+=e.byteLength,T(this,G,Math.max(i(this,G),this.pos))}finalize(){m(this,re,ge).call(this,this.pos),i(this,se).buffer=i(this,L).slice(0,Math.max(i(this,G),this.pos))}};se=new WeakMap;L=new WeakMap;J=new WeakMap;G=new WeakMap;re=new WeakSet;ge=function(e){let t=i(this,L).byteLength;for(;t<e;)t*=2;if(t===i(this,L).byteLength)return;let s=new ArrayBuffer(t),r=new Uint8Array(s);r.set(i(this,J),0),T(this,L,s),T(this,J,r)};var ae,N,Xe=class extends Oe{constructor(e){super(),d(this,ae,void 0),d(this,N,[]),T(this,ae,e)}write(e){i(this,N).push({data:e.slice(),start:this.pos}),this.pos+=e.byteLength}flush(){if(i(this,N).length===0)return;let e=[],t=[...i(this,N)].sort((s,r)=>s.start-r.start);e.push({start:t[0].start,size:t[0].data.byteLength});for(let s=1;s<t.length;s++){let r=e[e.length-1],a=t[s];a.start<=r.start+r.size?r.size=Math.max(r.size,a.start+a.data.byteLength-r.start):e.push({start:a.start,size:a.data.byteLength})}for(let s of e){s.data=new Uint8Array(s.size);for(let r of i(this,N))s.start<=r.start&&r.start<s.start+s.size&&s.data.set(r.data,r.start-s.start);i(this,ae).options.onData?.(s.data,s.start)}i(this,N).length=0}finalize(){}};ae=new WeakMap;N=new WeakMap;var Jt=2**24,ei=2,le,E,_,fe,ye,Me,Ge,Ie,Ze,K,ue,Ke=class extends Oe{constructor(e){if(super(),d(this,fe),d(this,Me),d(this,Ie),d(this,K),d(this,le,void 0),d(this,E,void 0),d(this,_,[]),T(this,le,e),T(this,E,e.options?.chunkSize??Jt),!Number.isInteger(i(this,E))||i(this,E)<2**10)throw new Error("Invalid StreamTarget options: chunkSize must be an integer not smaller than 1024.")}write(e){m(this,fe,ye).call(this,e,this.pos),m(this,K,ue).call(this),this.pos+=e.byteLength}finalize(){m(this,K,ue).call(this,!0)}};le=new WeakMap;E=new WeakMap;_=new WeakMap;fe=new WeakSet;ye=function(e,t){let s=i(this,_).findIndex(f=>f.start<=t&&t<f.start+i(this,E));s===-1&&(s=m(this,Ie,Ze).call(this,t));let r=i(this,_)[s],a=t-r.start,o=e.subarray(0,Math.min(i(this,E)-a,e.byteLength));r.data.set(o,a);let l={start:a,end:a+o.byteLength};if(m(this,Me,Ge).call(this,r,l),r.written[0].start===0&&r.written[0].end===i(this,E)&&(r.shouldFlush=!0),i(this,_).length>ei){for(let f=0;f<i(this,_).length-1;f++)i(this,_)[f].shouldFlush=!0;m(this,K,ue).call(this)}o.byteLength<e.byteLength&&m(this,fe,ye).call(this,e.subarray(o.byteLength),t+o.byteLength)};Me=new WeakSet;Ge=function(e,t){let s=0,r=e.written.length-1,a=-1;for(;s<=r;){let o=Math.floor(s+(r-s+1)/2);e.written[o].start<=t.start?(s=o+1,a=o):r=o-1}for(e.written.splice(a+1,0,t),(a===-1||e.written[a].end<t.start)&&a++;a<e.written.length-1&&e.written[a].end>=e.written[a+1].start;)e.written[a].end=Math.max(e.written[a].end,e.written[a+1].end),e.written.splice(a+1,1)};Ie=new WeakSet;Ze=function(e){let s={start:Math.floor(e/i(this,E))*i(this,E),data:new Uint8Array(i(this,E)),written:[],shouldFlush:!1};return i(this,_).push(s),i(this,_).sort((r,a)=>r.start-a.start),i(this,_).indexOf(s)};K=new WeakSet;ue=function(e=!1){for(let t=0;t<i(this,_).length;t++){let s=i(this,_)[t];if(!(!s.shouldFlush&&!e)){for(let r of s.written)i(this,le).options.onData?.(s.data.subarray(r.start,r.end),s.start+r.start);i(this,_).splice(t--,1)}}};var ti=class extends Ke{constructor(e){super(new qe({onData:(t,s)=>e.stream.write({type:"write",data:t,position:s}),chunkSize:e.options?.chunkSize}))}},Ce=1e3,ii=["avc","hevc","vp9","av1"],si=["aac","opus"],ri=2082844800,ai=["strict","offset","cross-track-offset"],h,u,de,k,b,y,j,$,De,F,R,Q,Te,Qe,Se,Ye,Ue,Je,be,et,xe,tt,ne,ke,A,D,We,it,Y,me,pe,Ne,q,ee,oe,_e,st=class{constructor(e){if(d(this,Te),d(this,Se),d(this,Ue),d(this,be),d(this,xe),d(this,ne),d(this,A),d(this,We),d(this,Y),d(this,pe),d(this,q),d(this,oe),d(this,h,void 0),d(this,u,void 0),d(this,de,void 0),d(this,k,void 0),d(this,b,null),d(this,y,null),d(this,j,Math.floor(Date.now()/1e3)+ri),d(this,$,[]),d(this,De,1),d(this,F,[]),d(this,R,[]),d(this,Q,!1),m(this,Te,Qe).call(this,e),e.video=Z(e.video),e.audio=Z(e.audio),e.fastStart=Z(e.fastStart),this.target=e.target,T(this,h,{firstTimestampBehavior:"strict",...e}),e.target instanceof Be)T(this,u,new Yt(e.target));else if(e.target instanceof qe)T(this,u,e.target.options?.chunked?new Ke(e.target):new Xe(e.target));else if(e.target instanceof Qt)T(this,u,new ti(e.target));else throw new Error(`Invalid target: ${e.target}`);m(this,be,et).call(this),m(this,Se,Ye).call(this)}addVideoChunk(e,t,s,r){if(!(e instanceof EncodedVideoChunk))throw new TypeError("addVideoChunk's first argument (sample) must be of type EncodedVideoChunk.");if(t&&typeof t!="object")throw new TypeError("addVideoChunk's second argument (meta), when provided, must be an object.");if(s!==void 0&&(!Number.isFinite(s)||s<0))throw new TypeError("addVideoChunk's third argument (timestamp), when provided, must be a non-negative real number.");if(r!==void 0&&!Number.isFinite(r))throw new TypeError("addVideoChunk's fourth argument (compositionTimeOffset), when provided, must be a real number.");let a=new Uint8Array(e.byteLength);e.copyTo(a),this.addVideoChunkRaw(a,e.type,s??e.timestamp,e.duration,t,r)}addVideoChunkRaw(e,t,s,r,a,o){if(!(e instanceof Uint8Array))throw new TypeError("addVideoChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addVideoChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(s)||s<0)throw new TypeError("addVideoChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(r)||r<0)throw new TypeError("addVideoChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addVideoChunkRaw's fifth argument (meta), when provided, must be an object.");if(o!==void 0&&!Number.isFinite(o))throw new TypeError("addVideoChunkRaw's sixth argument (compositionTimeOffset), when provided, must be a real number.");if(m(this,oe,_e).call(this),!i(this,h).video)throw new Error("No video track declared.");if(typeof i(this,h).fastStart=="object"&&i(this,b).samples.length===i(this,h).fastStart.expectedVideoChunks)throw new Error(`Cannot add more video chunks than specified in 'fastStart' (${i(this,h).fastStart.expectedVideoChunks}).`);let l=m(this,ne,ke).call(this,i(this,b),e,t,s,r,a,o);if(i(this,h).fastStart==="fragmented"&&i(this,y)){for(;i(this,R).length>0&&i(this,R)[0].decodeTimestamp<=l.decodeTimestamp;){let f=i(this,R).shift();m(this,A,D).call(this,i(this,y),f)}l.decodeTimestamp<=i(this,y).lastDecodeTimestamp?m(this,A,D).call(this,i(this,b),l):i(this,F).push(l)}else m(this,A,D).call(this,i(this,b),l)}addAudioChunk(e,t,s){if(!(e instanceof EncodedAudioChunk))throw new TypeError("addAudioChunk's first argument (sample) must be of type EncodedAudioChunk.");if(t&&typeof t!="object")throw new TypeError("addAudioChunk's second argument (meta), when provided, must be an object.");if(s!==void 0&&(!Number.isFinite(s)||s<0))throw new TypeError("addAudioChunk's third argument (timestamp), when provided, must be a non-negative real number.");let r=new Uint8Array(e.byteLength);e.copyTo(r),this.addAudioChunkRaw(r,e.type,s??e.timestamp,e.duration,t)}addAudioChunkRaw(e,t,s,r,a){if(!(e instanceof Uint8Array))throw new TypeError("addAudioChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addAudioChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(s)||s<0)throw new TypeError("addAudioChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(r)||r<0)throw new TypeError("addAudioChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addAudioChunkRaw's fifth argument (meta), when provided, must be an object.");if(m(this,oe,_e).call(this),!i(this,h).audio)throw new Error("No audio track declared.");if(typeof i(this,h).fastStart=="object"&&i(this,y).samples.length===i(this,h).fastStart.expectedAudioChunks)throw new Error(`Cannot add more audio chunks than specified in 'fastStart' (${i(this,h).fastStart.expectedAudioChunks}).`);let o=m(this,ne,ke).call(this,i(this,y),e,t,s,r,a);if(i(this,h).fastStart==="fragmented"&&i(this,b)){for(;i(this,F).length>0&&i(this,F)[0].decodeTimestamp<=o.decodeTimestamp;){let l=i(this,F).shift();m(this,A,D).call(this,i(this,b),l)}o.decodeTimestamp<=i(this,b).lastDecodeTimestamp?m(this,A,D).call(this,i(this,y),o):i(this,R).push(o)}else m(this,A,D).call(this,i(this,y),o)}finalize(){if(i(this,Q))throw new Error("Cannot finalize a muxer more than once.");if(i(this,h).fastStart==="fragmented"){for(let t of i(this,F))m(this,A,D).call(this,i(this,b),t);for(let t of i(this,R))m(this,A,D).call(this,i(this,y),t);m(this,pe,Ne).call(this,!1)}else i(this,b)&&m(this,Y,me).call(this,i(this,b)),i(this,y)&&m(this,Y,me).call(this,i(this,y));let e=[i(this,b),i(this,y)].filter(Boolean);if(i(this,h).fastStart==="in-memory"){let t;for(let r=0;r<2;r++){let a=ie(e,i(this,j)),o=i(this,u).measureBox(a);t=i(this,u).measureBox(i(this,k));let l=i(this,u).pos+o+t;for(let f of i(this,$)){f.offset=l;for(let{data:v}of f.samples)l+=v.byteLength,t+=v.byteLength}if(l<2**32)break;t>=2**32&&(i(this,k).largeSize=!0)}let s=ie(e,i(this,j));i(this,u).writeBox(s),i(this,k).size=t,i(this,u).writeBox(i(this,k));for(let r of i(this,$))for(let a of r.samples)i(this,u).write(a.data),a.data=null}else if(i(this,h).fastStart==="fragmented"){let t=i(this,u).pos,s=$t(e);i(this,u).writeBox(s);let r=i(this,u).pos-t;i(this,u).seek(i(this,u).pos-4),i(this,u).writeU32(r)}else{let t=i(this,u).offsets.get(i(this,k)),s=i(this,u).pos-t;i(this,k).size=s,i(this,k).largeSize=s>=2**32,i(this,u).patchBox(i(this,k));let r=ie(e,i(this,j));if(typeof i(this,h).fastStart=="object"){i(this,u).seek(i(this,de)),i(this,u).writeBox(r);let a=t-i(this,u).pos;i(this,u).writeBox(ht(a))}else i(this,u).writeBox(r)}m(this,q,ee).call(this),i(this,u).finalize(),T(this,Q,!0)}};h=new WeakMap;u=new WeakMap;de=new WeakMap;k=new WeakMap;b=new WeakMap;y=new WeakMap;j=new WeakMap;$=new WeakMap;De=new WeakMap;F=new WeakMap;R=new WeakMap;Q=new WeakMap;Te=new WeakSet;Qe=function(e){if(typeof e!="object")throw new TypeError("The muxer requires an options object to be passed to its constructor.");if(!(e.target instanceof ce))throw new TypeError("The target must be provided and an instance of Target.");if(e.video){if(!ii.includes(e.video.codec))throw new TypeError(`Unsupported video codec: ${e.video.codec}`);if(!Number.isInteger(e.video.width)||e.video.width<=0)throw new TypeError(`Invalid video width: ${e.video.width}. Must be a positive integer.`);if(!Number.isInteger(e.video.height)||e.video.height<=0)throw new TypeError(`Invalid video height: ${e.video.height}. Must be a positive integer.`);let t=e.video.rotation;if(typeof t=="number"&&![0,90,180,270].includes(t))throw new TypeError(`Invalid video rotation: ${t}. Has to be 0, 90, 180 or 270.`);if(Array.isArray(t)&&(t.length!==9||t.some(s=>typeof s!="number")))throw new TypeError(`Invalid video transformation matrix: ${t.join()}`);if(e.video.frameRate!==void 0&&(!Number.isInteger(e.video.frameRate)||e.video.frameRate<=0))throw new TypeError(`Invalid video frame rate: ${e.video.frameRate}. Must be a positive integer.`)}if(e.audio){if(!si.includes(e.audio.codec))throw new TypeError(`Unsupported audio codec: ${e.audio.codec}`);if(!Number.isInteger(e.audio.numberOfChannels)||e.audio.numberOfChannels<=0)throw new TypeError(`Invalid number of audio channels: ${e.audio.numberOfChannels}. Must be a positive integer.`);if(!Number.isInteger(e.audio.sampleRate)||e.audio.sampleRate<=0)throw new TypeError(`Invalid audio sample rate: ${e.audio.sampleRate}. Must be a positive integer.`)}if(e.firstTimestampBehavior&&!ai.includes(e.firstTimestampBehavior))throw new TypeError(`Invalid first timestamp behavior: ${e.firstTimestampBehavior}`);if(typeof e.fastStart=="object"){if(e.video){if(e.fastStart.expectedVideoChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedVideoChunks'.");if(!Number.isInteger(e.fastStart.expectedVideoChunks)||e.fastStart.expectedVideoChunks<0)throw new TypeError("'expectedVideoChunks' must be a non-negative integer.")}if(e.audio){if(e.fastStart.expectedAudioChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedAudioChunks'.");if(!Number.isInteger(e.fastStart.expectedAudioChunks)||e.fastStart.expectedAudioChunks<0)throw new TypeError("'expectedAudioChunks' must be a non-negative integer.")}}else if(![!1,"in-memory","fragmented"].includes(e.fastStart))throw new TypeError("'fastStart' option must be false, 'in-memory', 'fragmented' or an object.")};Se=new WeakSet;Ye=function(){if(i(this,u).writeBox(ot({holdsAvc:i(this,h).video?.codec==="avc",fragmented:i(this,h).fastStart==="fragmented"})),T(this,de,i(this,u).pos),i(this,h).fastStart==="in-memory")T(this,k,ve(!1));else if(i(this,h).fastStart!=="fragmented"){if(typeof i(this,h).fastStart=="object"){let e=m(this,Ue,Je).call(this);i(this,u).seek(i(this,u).pos+e)}T(this,k,ve(!0)),i(this,u).writeBox(i(this,k))}m(this,q,ee).call(this)};Ue=new WeakSet;Je=function(){if(typeof i(this,h).fastStart!="object")return;let e=0,t=[i(this,h).fastStart.expectedVideoChunks,i(this,h).fastStart.expectedAudioChunks];for(let s of t)s&&(e+=8*Math.ceil(2/3*s),e+=4*s,e+=12*Math.ceil(2/3*s),e+=4*s,e+=8*s);return e+=4096,e};be=new WeakSet;et=function(){if(i(this,h).video&&T(this,b,{id:1,info:{type:"video",codec:i(this,h).video.codec,width:i(this,h).video.width,height:i(this,h).video.height,rotation:i(this,h).video.rotation??0,decoderConfig:null},timescale:i(this,h).video.frameRate??57600,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,h).audio&&(T(this,y,{id:i(this,h).video?2:1,info:{type:"audio",codec:i(this,h).audio.codec,numberOfChannels:i(this,h).audio.numberOfChannels,sampleRate:i(this,h).audio.sampleRate,decoderConfig:null},timescale:i(this,h).audio.sampleRate,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,h).audio.codec==="aac")){let e=m(this,xe,tt).call(this,2,i(this,h).audio.sampleRate,i(this,h).audio.numberOfChannels);i(this,y).info.decoderConfig={codec:i(this,h).audio.codec,description:e,numberOfChannels:i(this,h).audio.numberOfChannels,sampleRate:i(this,h).audio.sampleRate}}};xe=new WeakSet;tt=function(e,t,s){let a=[96e3,88200,64e3,48e3,44100,32e3,24e3,22050,16e3,12e3,11025,8e3,7350].indexOf(t),o=s,l="";l+=e.toString(2).padStart(5,"0"),l+=a.toString(2).padStart(4,"0"),a===15&&(l+=t.toString(2).padStart(24,"0")),l+=o.toString(2).padStart(4,"0");let f=Math.ceil(l.length/8)*8;l=l.padEnd(f,"0");let v=new Uint8Array(l.length/8);for(let S=0;S<l.length;S+=8)v[S/8]=parseInt(l.slice(S,S+8),2);return v};ne=new WeakSet;ke=function(e,t,s,r,a,o,l){let f=r/1e6,v=(r-(l??0))/1e6,S=a/1e6,U=m(this,We,it).call(this,f,v,e);return f=U.presentationTimestamp,v=U.decodeTimestamp,o?.decoderConfig&&(e.info.decoderConfig===null?e.info.decoderConfig=o.decoderConfig:Object.assign(e.info.decoderConfig,o.decoderConfig)),{presentationTimestamp:f,decodeTimestamp:v,duration:S,data:t,size:t.byteLength,type:s,timescaleUnitsToNextSample:O(S,e.timescale)}};A=new WeakSet;D=function(e,t){i(this,h).fastStart!=="fragmented"&&e.samples.push(t);let s=O(t.presentationTimestamp-t.decodeTimestamp,e.timescale);if(e.lastTimescaleUnits!==null){let a=O(t.decodeTimestamp,e.timescale,!1),o=Math.round(a-e.lastTimescaleUnits);if(e.lastTimescaleUnits+=o,e.lastSample.timescaleUnitsToNextSample=o,i(this,h).fastStart!=="fragmented"){let l=he(e.timeToSampleTable);l.sampleCount===1?(l.sampleDelta=o,l.sampleCount++):l.sampleDelta===o?l.sampleCount++:(l.sampleCount--,e.timeToSampleTable.push({sampleCount:2,sampleDelta:o}));let f=he(e.compositionTimeOffsetTable);f.sampleCompositionTimeOffset===s?f.sampleCount++:e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:s})}}else e.lastTimescaleUnits=0,i(this,h).fastStart!=="fragmented"&&(e.timeToSampleTable.push({sampleCount:1,sampleDelta:O(t.duration,e.timescale)}),e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:s}));e.lastSample=t;let r=!1;if(!e.currentChunk)r=!0;else{let a=t.presentationTimestamp-e.currentChunk.startTimestamp;if(i(this,h).fastStart==="fragmented"){let o=i(this,b)??i(this,y);e===o&&t.type==="key"&&a>=1&&(r=!0,m(this,pe,Ne).call(this))}else r=a>=.5}r&&(e.currentChunk&&m(this,Y,me).call(this,e),e.currentChunk={startTimestamp:t.presentationTimestamp,samples:[]}),e.currentChunk.samples.push(t)};We=new WeakSet;it=function(e,t,s){let r=i(this,h).firstTimestampBehavior==="strict",a=s.lastDecodeTimestamp===-1;if(r&&a&&t!==0)throw new Error(`The first chunk for your media track must have a timestamp of 0 (received DTS=${t}).Non-zero first timestamps are often caused by directly piping frames or audio data from a MediaStreamTrack into the encoder. Their timestamps are typically relative to the age of thedocument, which is probably what you want.
+
+If you want to offset all timestamps of a track such that the first one is zero, set firstTimestampBehavior: 'offset' in the options.
+`);if(i(this,h).firstTimestampBehavior==="offset"||i(this,h).firstTimestampBehavior==="cross-track-offset"){s.firstDecodeTimestamp===void 0&&(s.firstDecodeTimestamp=t);let l;i(this,h).firstTimestampBehavior==="offset"?l=s.firstDecodeTimestamp:l=Math.min(i(this,b)?.firstDecodeTimestamp??1/0,i(this,y)?.firstDecodeTimestamp??1/0),t-=l,e-=l}if(t<s.lastDecodeTimestamp)throw new Error(`Timestamps must be monotonically increasing (DTS went from ${s.lastDecodeTimestamp*1e6} to ${t*1e6}).`);return s.lastDecodeTimestamp=t,{presentationTimestamp:e,decodeTimestamp:t}};Y=new WeakSet;me=function(e){if(i(this,h).fastStart==="fragmented")throw new Error("Can't finalize individual chunks if 'fastStart' is set to 'fragmented'.");if(e.currentChunk){if(e.finalizedChunks.push(e.currentChunk),i(this,$).push(e.currentChunk),(e.compactlyCodedChunkTable.length===0||he(e.compactlyCodedChunkTable).samplesPerChunk!==e.currentChunk.samples.length)&&e.compactlyCodedChunkTable.push({firstChunk:e.finalizedChunks.length,samplesPerChunk:e.currentChunk.samples.length}),i(this,h).fastStart==="in-memory"){e.currentChunk.offset=0;return}e.currentChunk.offset=i(this,u).pos;for(let t of e.currentChunk.samples)i(this,u).write(t.data),t.data=null;m(this,q,ee).call(this)}};pe=new WeakSet;Ne=function(e=!0){if(i(this,h).fastStart!=="fragmented")throw new Error("Can't finalize a fragment unless 'fastStart' is set to 'fragmented'.");let t=[i(this,b),i(this,y)].filter(f=>f&&f.currentChunk);if(t.length===0)return;let s=rt(this,De)._++;if(s===1){let f=ie(t,i(this,j),!0);i(this,u).writeBox(f)}let r=i(this,u).pos,a=Le(s,t);i(this,u).writeBox(a);{let f=ve(!1),v=0;for(let U of t)for(let X of U.currentChunk.samples)v+=X.size;let S=i(this,u).measureBox(f)+v;S>=2**32&&(f.largeSize=!0,S=i(this,u).measureBox(f)+v),f.size=S,i(this,u).writeBox(f)}for(let f of t){f.currentChunk.offset=i(this,u).pos,f.currentChunk.moofOffset=r;for(let v of f.currentChunk.samples)i(this,u).write(v.data),v.data=null}let o=i(this,u).pos;i(this,u).seek(i(this,u).offsets.get(a));let l=Le(s,t);i(this,u).writeBox(l),i(this,u).seek(o);for(let f of t)f.finalizedChunks.push(f.currentChunk),i(this,$).push(f.currentChunk),f.currentChunk=null;e&&m(this,q,ee).call(this)};q=new WeakSet;ee=function(){i(this,u)instanceof Xe&&i(this,u).flush()};oe=new WeakSet;_e=function(){if(i(this,Q))throw new Error("Cannot add new video or audio chunks after the file has been finalized.")};globalThis.__Mp4MuxerLib={Muxer:st,ArrayBufferTarget:Be};})();
+async function mvEncodeMp4(delay, n, onProg){
+  const L = globalThis.__Mp4MuxerLib;
+  if(typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined' || !L) return null;
+  const cv = $('mvCanvas'), fps = 10, test = !!globalThis.__mvVideoTest;
+  const k = Math.min(1, 2048 / Math.max(cv.width, cv.height));
+  const W = Math.max(2, Math.round(cv.width * k / 2) * 2), H = Math.max(2, Math.round(cv.height * k / 2) * 2);
+  let cfg = null;
+  for(const codec of (test ? ['vp09.00.10.08'] : ['avc1.640033', 'avc1.64002a', 'avc1.4d0033', 'avc1.42001f'])){
+    const c = { codec, width:W, height:H, bitrate:Math.round(W * H * fps * 0.5), framerate:fps };
+    try{ const r = await VideoEncoder.isConfigSupported(c); if(r.supported){ cfg = c; break; } }catch(_){}
+  }
+  if(!cfg) return null;
+  const target = new L.ArrayBufferTarget();
+  const muxer = new L.Muxer({ target, video:{ codec: test ? 'vp9' : 'avc', width:W, height:H }, fastStart:'in-memory' });
+  let err = null;
+  const enc = new VideoEncoder({ output:(chunk, meta)=> muxer.addVideoChunk(chunk, meta), error:e=>{ err = e; } });
+  enc.configure(cfg);
+  const rc = document.createElement('canvas'); rc.width = W; rc.height = H;
+  const rx = rc.getContext('2d'), dt = 1e6 / fps, per = Math.max(2, Math.round(delay / 100));
+  let ts = 0;
+  const put = async (keyFirst, count)=>{
+    for(let j = 0; j < count; j++){
+      const vf = new VideoFrame(rc, { timestamp: ts, duration: dt });
+      enc.encode(vf, { keyFrame: keyFirst && j === 0 }); vf.close(); ts += dt;
+      while(enc.encodeQueueSize > 8){ await new Promise(r=> setTimeout(r, 5)); if(err) throw err; }
+    }
+  };
+  for(let i = 0; i < n; i++){
+    const fr = mvStepFrame(i, true);
+    rx.fillStyle = '#fff'; rx.fillRect(0, 0, W, H); rx.drawImage(fr, 0, 0, W, H);
+    onProg(i);
+    await put(true, per);
+    if(err) throw err;
+  }
+  await put(false, 3);
+  await enc.flush(); if(err) throw err;
+  muxer.finalize();
+  return new Blob([target.buffer], { type:'video/mp4' });
+}
 async function mvHSaveVideo(){
   const back = mvHExportBegin(); if(back === null) return;
-  $('mvHVideo').disabled = true; $('mvHZip').disabled = true;
+  $('mvHVideo').disabled = true; $('mvHZip').disabled = true; $('mvHPdf').disabled = true;
   try{
+    /* الأول: MP4 حقيقي (H.264) - بيشتغل على أي برنامج وموبايل */
+    let mp4 = null;
+    try{ mp4 = await mvEncodeMp4(Number($('mvHSpeed').value) || 900, mvH.snaps.length, i=>{ $('mvHVideo').textContent = '⏺ ' + (i + 1) + '/' + mvH.snaps.length; }); }catch(_){ mp4 = null; }
+    if(mp4){
+      mvDl(mp4, mvL('خطوات-الرسم-','drawing-steps-') + new Date().toISOString().slice(0,10) + '.mp4');
+      showToast(mvT('تم حفظ الفيديو (MP4)')); return;
+    }
     if(typeof MediaRecorder === 'undefined') throw new Error('nomr');
     const delay = Number($('mvHSpeed').value) || 900, n = mvH.snaps.length;
     const cv = $('mvCanvas');
@@ -2394,7 +2657,7 @@ async function mvHSaveVideo(){
     rec.stop(); await done;
     const type = (rec.mimeType || mime || 'video/webm').split(';')[0];
     mvDl(new Blob(chunks, { type }), mvL('خطوات-الرسم-','drawing-steps-') + new Date().toISOString().slice(0,10) + (type.includes('mp4') ? '.mp4' : '.webm'));
-    showToast(type.includes('mp4') ? mvT('تم حفظ الفيديو (MP4)') : mvT('تم حفظ الفيديو بصيغة WebM (المتصفح ده مش بيدعم MP4)'));
+    showToast(type.includes('mp4') ? mvT('تم حفظ الفيديو (MP4)') : mvT('المتصفح ده مش بيدعم MP4 - اتحفظ الفيديو بصيغة WebM. جرّب Chrome أو Safari حديث'), !type.includes('mp4'));
   }catch(e){
     showToast(mvT('المتصفح ده مش بيدعم تسجيل الفيديو - استخدم "كل الخطوات صور"'), true);
   }finally{ mvHExportEnd(back); }
